@@ -1,0 +1,632 @@
+{
+  "question1": [
+    {
+      "question": "A multi-agent research system returns verbose outputs from several subagents, and the synthesis agent frequently misses critical findings buried in the middle of aggregated inputs. What is the best structural fix?",
+      "answers": [
+        "A. Place a key findings summary at the beginning of the aggregated input and organize detailed results with explicit section headers for easier navigation.",
+        "B. Summarize all subagent outputs to a maximum of 20K tokens before passing them to the synthesis agent.",
+        "C. Stream results incrementally to the synthesis agent so it processes each subagent's output as it arrives.",
+        "D. Rotate which subagent's output appears first to prevent any single agent from dominating attention."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "You notice that a language model consistently attends to content at the very start and end of a long prompt, while information in the middle is often ignored. Your research pipeline aggregates results from five agents into one long context. How should you restructure the aggregated input to mitigate this?",
+      "answers": [
+        "A. Convert all subagent outputs to bullet points to reduce total token count.",
+        "B. Randomize the order of subagent results on each run to distribute attention evenly.",
+        "C. Stream each subagent's output directly to the synthesis step to avoid batching.",
+        "D. Place a key findings summary at the top and divide the detailed results into labeled sections with explicit headers."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "A research team reports that their synthesis agent produces incomplete summaries, yet the raw subagent outputs clearly contain the missing data. Which approach would NOT address the lost-in-middle problem?",
+      "answers": [
+        "A. Adding a key findings summary block at the top of the aggregated context.",
+        "B. Increasing the synthesis agent's maximum output token limit.",
+        "C. Organizing detailed results under explicit named section headers.",
+        "D. Structuring the input so critical content appears near the start rather than the middle."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "Language models exhibit a positional bias where tokens near the beginning and end of a long context receive more attention than tokens in the middle. In a multi-agent pipeline, which architectural principle best counteracts this bias when aggregating subagent outputs for a downstream consumer?",
+      "answers": [
+        "A. Truncating outputs uniformly so no single section exceeds a fixed length.",
+        "B. Processing subagent outputs in parallel rather than sequentially.",
+        "C. Front-loading a structured summary of key findings and using explicit section headers to create retrieval anchors throughout the document.",
+        "D. Delegating summarization responsibility to the subagents themselves before returning results."
+      ],
+      "correctAnswer": "C"
+    }
+  ],
+  "question2": [
+    {
+      "question": "The synthesis agent in a research pipeline frequently needs to verify small factual claims, but every lookup requires a full round-trip through the coordinator to the web search agent, creating latency. What is the best solution?",
+      "answers": [
+        "A. Give the synthesis agent a scoped verify_fact tool for simple lookups, while complex verifications continue delegating to the web search agent through the coordinator.",
+        "B. Give the synthesis agent full web search tool access so it can handle all verifications independently.",
+        "C. Batch all verifications at the end of synthesis and send them as a single request to the web search agent.",
+        "D. Have the synthesis agent proactively cache extra context at the start of each session to avoid lookups."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "A coordinator-based multi-agent system experiences high latency because the synthesis agent must delegate even trivial fact-checks to the web search agent. You want to reduce unnecessary round-trips without giving the synthesis agent unconstrained internet access. What is the right design?",
+      "answers": [
+        "A. Remove the web search agent and have the synthesis agent handle all research tasks.",
+        "B. Pre-load a large knowledge base into the synthesis agent's context at startup.",
+        "C. Allow agents to communicate peer-to-peer, bypassing the coordinator for verification requests.",
+        "D. Provide the synthesis agent with a narrow verify_fact tool for lightweight lookups, and continue routing complex searches through the coordinator."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "Which of the following changes would introduce the most risk when trying to reduce verification latency in a synthesis agent?",
+      "answers": [
+        "A. Giving the synthesis agent a tightly scoped lookup tool that returns only factual confirmations.",
+        "B. Keeping complex verification tasks routed through the coordinator to the web search agent.",
+        "C. Granting the synthesis agent full, unrestricted web search capabilities.",
+        "D. Using a scoped tool that covers roughly 85% of simple verification cases."
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "question": "In a multi-agent system, the principle of least privilege suggests that agents should have only the tools they need for their specific role. How does this principle apply when optimizing a synthesis agent that wastes time on trivial fact lookups?",
+      "answers": [
+        "A. Remove all external tool access from the synthesis agent to enforce strict role boundaries.",
+        "B. Equip the synthesis agent with a minimally scoped verification tool covering common cases, while preserving the coordinator's role for complex lookups.",
+        "C. Centralize all tool calls through a single coordinator agent regardless of complexity.",
+        "D. Give each agent identical toolsets so any agent can handle any task without delegation."
+      ],
+      "correctAnswer": "B"
+    }
+  ],
+  "question3": [
+    {
+      "question": "In a multi-agent system, the coordinator frequently routes tasks to the document analysis agent when it should use the web search agent. Investigation reveals the tool names and descriptions are ambiguous. What is the most direct fix?",
+      "answers": [
+        "A. Rename the web search tool to extract_web_results and update its description to 'processes and returns information retrieved from web searches and URLs.'",
+        "B. Expand the document analysis tool's description to clarify that it only processes local files.",
+        "C. Add few-shot routing examples to the coordinator's system prompt to teach correct selection.",
+        "D. Add a pre-routing classifier agent that determines which tool is appropriate before the coordinator acts."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "A coordinator agent consistently selects the wrong tool when deciding whether to perform a web search or a document analysis. The current tool is named analyze_content. What single change resolves the ambiguity most effectively?",
+      "answers": [
+        "A. Add a dedicated routing agent between the coordinator and the tools.",
+        "B. Duplicate the tool under both names so the coordinator can choose either.",
+        "C. Write more detailed instructions in the coordinator's system prompt.",
+        "D. Rename the tool to extract_web_results and rewrite its description to clarify it handles web-sourced data."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "A developer tries to fix tool-routing confusion by only adding more examples to the coordinator's prompt. Why is this an inadequate solution compared to fixing the tool name and description?",
+      "answers": [
+        "A. Adding examples always causes the model to over-rely on the nearest example.",
+        "B. Prompt examples increase latency more than renaming tools.",
+        "C. Prompt examples are less effective than tool metadata for guiding the model's tool selection decisions.",
+        "D. The coordinator does not read its system prompt during tool selection."
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "question": "Tool naming is a form of interface design in multi-agent systems. What principle justifies renaming a tool like analyze_content to extract_web_results when routing errors occur?",
+      "answers": [
+        "A. Shorter names consume fewer tokens and reduce API costs.",
+        "B. Names and descriptions are the primary signals a language model uses to select tools; unambiguous names reduce the space of plausible misinterpretations.",
+        "C. Renaming forces agents to re-learn tool behavior, which improves generalization.",
+        "D. Standardized naming conventions ensure compatibility across different LLM providers."
+      ],
+      "correctAnswer": "B"
+    }
+  ],
+  "question4": [
+    {
+      "question": "The synthesis agent in a research pipeline consistently exceeds its token budget because upstream agents return verbose outputs filled with reasoning chains. What is the best architectural fix?",
+      "answers": [
+        "A. Modify upstream agents to return structured data (key facts, citations, relevance scores) instead of verbose content and reasoning.",
+        "B. Have the synthesis agent process upstream outputs in sequential batches to spread the token load.",
+        "C. Insert an intermediate summarization agent between upstream agents and the synthesis step.",
+        "D. Store upstream outputs in a vector database and give the synthesis agent retrieval tools."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "Five research subagents each return 15,000 tokens of verbose output with embedded reasoning. The synthesis agent receives 75,000 tokens total, which exceeds its effective context window. Where should the fix be applied?",
+      "answers": [
+        "A. At the synthesis layer, by compressing inputs just before they are consumed.",
+        "B. At the output layer of each upstream agent, by changing their return format to structured, concise data.",
+        "C. At the coordinator layer, by filtering tokens based on keyword relevance.",
+        "D. At the infrastructure layer, by upgrading to a model with a larger context window."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "A team adds an intermediate summarization agent to reduce token volume before synthesis. Why is this approach inferior to modifying upstream agents to return structured data directly?",
+      "answers": [
+        "A. Summarization agents are prohibited in multi-agent architectures.",
+        "B. The coordinator cannot communicate with more than one intermediate agent.",
+        "C. Summarization agents cannot handle citations and relevance scores.",
+        "D. It adds an extra latency step and still processes the full verbose output rather than eliminating it at the source."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "In pipeline architecture, problems should be solved as close to their source as possible rather than compensated for downstream. How does this principle apply to token budget exhaustion in a synthesis agent?",
+      "answers": [
+        "A. The synthesis agent should be given truncation logic to cut inputs that exceed a threshold.",
+        "B. The system should switch to streaming so synthesis begins before all upstream agents finish.",
+        "C. Upstream agents should be redesigned to emit only structured, essential data so excess tokens are never generated.",
+        "D. The coordinator should enforce output size limits via prompt instructions after each subagent run."
+      ],
+      "correctAnswer": "C"
+    }
+  ],
+  "question5": [
+    {
+      "question": "Two research agents are deployed in parallel and return heavily overlapping findings, wasting computation and context space. What should the coordinator do to prevent this?",
+      "answers": [
+        "A. Implement a shared state mechanism so agents can dynamically avoid each other's search territory.",
+        "B. Run agents sequentially so each can see what the previous agent already covered.",
+        "C. Deduplicate the combined outputs after both agents finish.",
+        "D. Explicitly partition the research space before delegation, assigning distinct subtopics or source types to each agent."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "A coordinator launches three web research agents to investigate a broad topic. After collecting results, the coordinator finds that all three agents retrieved nearly identical articles. How should the coordinator's pre-delegation logic be changed?",
+      "answers": [
+        "A. Assign each agent a distinct subtopic or a specific type of source before dispatching them.",
+        "B. Allow agents to share a live cache of visited URLs during execution.",
+        "C. Reduce the number of parallel agents to one to eliminate overlap.",
+        "D. Post-process all results with a deduplication filter before passing them downstream."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "Which of the following strategies for preventing duplicate research work between parallel agents is least effective because it addresses the symptom rather than the cause?",
+      "answers": [
+        "A. Partitioning the research space at the coordinator level before any agent starts.",
+        "B. Deduplicating combined outputs after all agents have completed their work.",
+        "C. Assigning distinct source types (e.g., academic papers vs news articles) to different agents.",
+        "D. Giving each agent an explicit scope statement in its task description."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "In multi-agent parallelism, coordination overhead can be front-loaded (before execution) or back-loaded (after execution). What is the architectural argument for front-loading coordination through research space partitioning?",
+      "answers": [
+        "A. Back-loading is impossible in stateless multi-agent systems.",
+        "B. Front-loading reduces the coordinator's token usage by eliminating the need for task descriptions.",
+        "C. Front-loading prevents wasted computation, since agents never perform redundant work in the first place.",
+        "D. Partitioning forces agents to collaborate rather than compete for the same resources."
+      ],
+      "correctAnswer": "C"
+    }
+  ],
+  "question6": [
+    {
+      "question": "A research pipeline has a web search agent and a document analysis agent both completing their work. The coordinator now needs to produce a final report. How should the results be routed to the synthesis agent?",
+      "answers": [
+        "A. The document analysis agent merges both sets of findings internally before passing them on.",
+        "B. Each agent sends its findings directly to the report generation agent without coordinator involvement.",
+        "C. The coordinator passes both sets of findings to the synthesis agent for unified integration.",
+        "D. The coordinator concatenates the raw outputs and sends them directly to the report generator."
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "question": "After parallel research agents complete their tasks, a coordinator must bring their findings together. Which routing pattern best enables a synthesis agent to produce a coherent, integrated output?",
+      "answers": [
+        "A. Route all findings through the coordinator, which passes them together as a unified input to the synthesis agent.",
+        "B. Have each agent push its results directly to the synthesis agent as they finish.",
+        "C. Let the synthesis agent query each research agent independently on demand.",
+        "D. Have the last research agent to finish collect and forward all results."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "A developer proposes that parallel research agents should send their results directly to the synthesis agent to reduce coordinator involvement. What problem does this approach introduce?",
+      "answers": [
+        "A. Direct agent-to-agent communication requires serialization protocols not supported by most frameworks.",
+        "B. The synthesis agent cannot handle inputs from more than one agent at a time.",
+        "C. Direct communication between agents increases total token usage.",
+        "D. The synthesis agent may receive partial results or begin synthesis before all agents have finished, leading to incomplete integration."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "The coordinator-as-hub pattern requires that all inter-agent communication pass through the coordinator rather than happening directly between subagents. What does this centralization enable when combining outputs for synthesis?",
+      "answers": [
+        "A. It reduces total API calls by batching all messages into a single coordinator request.",
+        "B. It ensures the coordinator can observe, gate, and package all findings before the synthesis agent receives them, enabling complete and controlled input.",
+        "C. It prevents subagents from producing conflicting outputs by serializing their execution.",
+        "D. It allows the coordinator to replace the synthesis agent if synthesis fails."
+      ],
+      "correctAnswer": "B"
+    }
+  ],
+  "question7": [
+    {
+      "question": "A web search subagent encounters an error mid-task. What should it return to ensure the coordinator can make an informed recovery decision?",
+      "answers": [
+        "A. Retry the operation with exponential backoff, then return a generic failure status if retries are exhausted.",
+        "B. Return an empty result object to signal that no data was retrieved.",
+        "C. Propagate the raw exception to the top-level error handler.",
+        "D. Return structured error context including the failure type, the attempted query, any partial results, and potential alternative approaches."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "A research subagent fails while fetching results for a subtopic. The coordinator needs to decide whether to retry, skip, or reroute. What information must the subagent provide to enable intelligent recovery?",
+      "answers": [
+        "A. The failure type, the query that was attempted, any partial results obtained, and suggestions for alternative approaches.",
+        "B. A boolean success flag and the agent's unique identifier.",
+        "C. A human-readable error message and a timestamp.",
+        "D. The total number of retries attempted before failure."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "A subagent silently returns an empty result when it encounters an error, allowing the pipeline to continue. Why is this error-handling strategy problematic?",
+      "answers": [
+        "A. Empty results trigger automatic retries in most orchestration frameworks.",
+        "B. The coordinator has no way to distinguish a legitimate empty result from a failure, so it cannot take appropriate recovery action.",
+        "C. Empty results are not valid JSON and will cause a parsing error downstream.",
+        "D. Silent failures increase token usage because the coordinator must retry all tasks."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "Good error design in distributed systems follows the principle of 'fail informatively.' In a multi-agent research pipeline, how should this principle shape what a failing subagent returns to its coordinator?",
+      "answers": [
+        "A. The subagent should raise a hard exception to immediately stop the pipeline and prevent partial results from propagating.",
+        "B. The subagent should return a success response with a warning flag embedded in metadata.",
+        "C. The subagent should return rich error context — failure type, attempted action, partial results, and alternatives — so the coordinator can choose the best recovery path.",
+        "D. The subagent should attempt all possible recovery strategies before reporting failure."
+      ],
+      "correctAnswer": "C"
+    }
+  ],
+  "question8": [
+    {
+      "question": "A research pipeline investigating 'the history of artistic movements' returns findings only about visual arts — painting and sculpture — with no coverage of music, literature, or film. All subagents performed correctly within their assigned scopes. What is the root cause?",
+      "answers": [
+        "A. The web search agent used queries that were not comprehensive enough.",
+        "B. The coordinator agent's task decomposition is too narrow, resulting in subagent assignments that don't cover all relevant domains of the topic.",
+        "C. The synthesis agent lacks instructions to detect and flag coverage gaps.",
+        "D. The document analysis agent filtered out non-visual source materials."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "After a multi-agent research run, the final report covers only a subset of the intended topic. Each individual subagent completed its assigned task successfully. Where should the investigation focus?",
+      "answers": [
+        "A. The coordinator's task decomposition logic, since it defined assignments that missed entire topic areas.",
+        "B. The synthesis agent's instructions, since it failed to request additional coverage.",
+        "C. The subagents' tool implementations, since they returned incomplete data.",
+        "D. The document retrieval layer, since relevant documents may not have been indexed."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "A developer attempts to fix incomplete topic coverage by improving the synthesis agent's gap-detection prompt. Why is this fix likely to be ineffective?",
+      "answers": [
+        "A. Synthesis agents are stateless and cannot compare current results against expected scope.",
+        "B. Gap detection in synthesis requires access to external databases.",
+        "C. The synthesis agent cannot modify the research plan after subagents have run.",
+        "D. The synthesis agent can only work with the data it receives; if the coordinator never assigned coverage of certain domains, those domains will always be absent."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "In a multi-agent system, responsibility for output completeness can be assigned at different layers: coordinator, subagent, or synthesis. What principle determines where incomplete topic coverage should be fixed?",
+      "answers": [
+        "A. Completeness is a property of the final output, so it should always be enforced at the synthesis layer.",
+        "B. Subagents are responsible for broadening their own scope when assigned topics are too narrow.",
+        "C. The layer responsible for defining task scope is the coordinator; incomplete coverage due to narrow task decomposition must be fixed there.",
+        "D. Coverage gaps should be detected and corrected by a separate validation agent after synthesis."
+      ],
+      "correctAnswer": "C"
+    }
+  ],
+  "question9": [
+    {
+      "question": "A document analysis subagent encounters an unreadable file mid-task. The coordinator needs to decide how to proceed. What should the subagent do?",
+      "answers": [
+        "A. Silently skip the unreadable file and continue processing remaining documents.",
+        "B. Throw an exception that terminates the entire research workflow.",
+        "C. Return the error with context to the coordinator agent, letting it decide how to proceed.",
+        "D. Retry the file three times, then report a generic timeout error to the coordinator."
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "question": "A web search subagent receives a rate-limit error from an external API. It has partial results from queries completed before the error. What is the correct response?",
+      "answers": [
+        "A. Report the error with the partial results and context to the coordinator, which decides whether to retry, skip, or use the partial data.",
+        "B. Discard partial results and retry the entire task from scratch when the rate limit resets.",
+        "C. Return the partial results as if the task completed successfully.",
+        "D. Escalate the error to the top-level exception handler and halt execution."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "Which subagent error handling approach undermines the coordinator's ability to manage the research workflow effectively?",
+      "answers": [
+        "A. Returning a structured error object with context about what failed and what was partially completed.",
+        "B. Silently swallowing errors and returning empty results as if the task succeeded.",
+        "C. Including partial results alongside the error so the coordinator can assess their value.",
+        "D. Flagging the error type clearly so the coordinator can distinguish transient from permanent failures."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "In a well-designed multi-agent system, how should error authority be distributed between subagents and the coordinator?",
+      "answers": [
+        "A. Subagents should have full autonomy to resolve all errors without reporting upward.",
+        "B. All errors should bypass subagents and be handled exclusively by a central error management service.",
+        "C. Subagents should handle minor local errors and immediately terminate on anything unexpected.",
+        "D. Subagents should detect and describe errors, but defer recovery decisions to the coordinator, which has visibility into overall workflow state."
+      ],
+      "correctAnswer": "D"
+    }
+  ],
+  "question10": [
+    {
+      "question": "During document analysis, a subagent finds two sources citing contradictory revenue figures for the same company in the same year. What should the subagent do?",
+      "answers": [
+        "A. Halt analysis and immediately escalate the conflict to the coordinator before proceeding.",
+        "B. Include both figures without flagging the discrepancy, leaving reconciliation to synthesis.",
+        "C. Apply credibility heuristics to select the more reliable figure and discard the other.",
+        "D. Complete the document analysis with both figures included, explicitly annotate the conflict with source attribution, and let the coordinator decide how to reconcile before passing to synthesis."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "A research subagent discovers that two documents it is analyzing contain conflicting data points. It must decide whether to resolve the conflict or pass it forward. What is the appropriate action?",
+      "answers": [
+        "A. Average the conflicting figures to produce a consensus value.",
+        "B. Select the data point from the more recently published document and discard the other.",
+        "C. Annotate both conflicting data points with their sources and forward the conflict to the coordinator for resolution decisions.",
+        "D. Stop processing and request human review before continuing."
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "question": "A subagent resolves a data conflict on its own by choosing the figure from the source it judges more credible, without informing the coordinator. What risk does this introduce?",
+      "answers": [
+        "A. The subagent may lack the full context needed to make a sound judgment, and the coordinator loses visibility into a significant data quality issue.",
+        "B. Credibility judgments are computationally expensive and slow down the pipeline.",
+        "C. The coordinator may later retry the same query and receive a different answer.",
+        "D. Discarded data increases storage costs."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "In multi-agent research systems, the principle of separation of concerns assigns different responsibilities to different agents. How does this principle apply when a document analysis subagent encounters conflicting source data?",
+      "answers": [
+        "A. The subagent should resolve all conflicts independently to avoid burdening the coordinator.",
+        "B. Data collection (subagent) and conflict resolution (coordinator/synthesis) are separate concerns; the subagent should surface conflicts with full attribution rather than resolve them unilaterally.",
+        "C. The synthesis agent should re-run document analysis to verify conflicting figures itself.",
+        "D. Conflict resolution is a synthesis concern, so the subagent should silently pass only one value."
+      ],
+      "correctAnswer": "B"
+    }
+  ],
+  "question11": [
+    {
+      "question": "Why is a coordinator-as-hub architecture preferable to direct peer-to-peer communication between subagents in a research pipeline?",
+      "answers": [
+        "A. The coordinator batches requests to subagents, reducing total API calls and cost.",
+        "B. The coordinator can observe all interactions, handle errors consistently, and decide what information each subagent should receive.",
+        "C. The coordinator enables automatic retry of failed subagents without any additional configuration.",
+        "D. Direct peer-to-peer communication between agents requires complex serialization protocols."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "In a research system where subagents communicate directly with each other, the team notices inconsistent error handling and unpredictable information flow. They refactor to a coordinator-hub model. What specific capabilities does the coordinator gain?",
+      "answers": [
+        "A. Full observability over all interactions, centralized error handling, and control over the information each subagent receives.",
+        "B. The ability to run subagents on separate hardware for better performance isolation.",
+        "C. The ability to compress all subagent outputs before passing them forward.",
+        "D. The ability to share state between subagents using a shared memory object."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "A team argues that direct agent-to-agent communication is better than coordinator-mediated communication because it reduces latency. What capability do they sacrifice by bypassing the coordinator?",
+      "answers": [
+        "A. The ability to run agents in parallel.",
+        "B. The ability to use external APIs within subagents.",
+        "C. The ability to produce structured outputs from subagents.",
+        "D. The coordinator's visibility into interactions, consistent error handling, and control over information routing."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "The coordinator-as-hub pattern is a specific application of a broader architectural principle. What property of the coordinator makes it the right place to implement cross-cutting concerns like error handling and information gating?",
+      "answers": [
+        "A. The coordinator runs on more powerful hardware than subagents.",
+        "B. The coordinator has a larger context window than individual subagents.",
+        "C. The coordinator is the single point through which all information flows, giving it complete observability and the authority to enforce policies consistently.",
+        "D. The coordinator is stateless, making it easier to restart after failures."
+      ],
+      "correctAnswer": "C"
+    }
+  ],
+  "question12": [
+    {
+      "question": "A document analysis subagent encounters a corrupted section in a large document. How should it handle this failure?",
+      "answers": [
+        "A. Have the coordinator validate all documents for corruption before dispatching analysis tasks.",
+        "B. Implement local recovery for the corrupted section and only propagate errors it cannot resolve to the coordinator, including what was attempted and any partial results obtained.",
+        "C. Always return partial success with errors embedded in the result metadata.",
+        "D. Route all document errors through a dedicated error-handling agent."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "A subagent processing a large dataset hits a transient timeout on one record. It has successfully processed 90% of the dataset. What is the correct error handling strategy?",
+      "answers": [
+        "A. Immediately stop processing and report the timeout to the coordinator.",
+        "B. Discard the timed-out record silently and return the 90% as a complete result.",
+        "C. Restart the entire task from the beginning after a delay.",
+        "D. Attempt local recovery for the timed-out record, complete the remaining work, and only report to the coordinator if the error cannot be resolved locally."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "A team implements a policy where subagents escalate every error to the coordinator, even those that could be resolved locally. What is the main drawback of this approach?",
+      "answers": [
+        "A. Escalating recoverable errors unnecessarily interrupts the coordinator, increases round-trip latency, and prevents the subagent from using its local context to resolve trivial issues.",
+        "B. Coordinators cannot process error messages from more than one subagent simultaneously.",
+        "C. Error escalation requires serializing the full agent state, which exceeds message size limits.",
+        "D. Coordinators are not designed to handle errors and will propagate them unmodified."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "The principle of layered error handling suggests that errors should be resolved at the lowest competent layer. How does this principle translate into subagent design in a multi-agent research pipeline?",
+      "answers": [
+        "A. All error handling should be implemented in a single centralized service outside the agent system.",
+        "B. Subagents should silently discard all errors to keep the pipeline moving.",
+        "C. Subagents should implement local recovery for errors within their competence and escalate only unresolvable failures to the coordinator, with full context about what was tried.",
+        "D. Subagents should never handle errors themselves; all errors belong at the coordinator layer."
+      ],
+      "correctAnswer": "C"
+    }
+  ],
+  "question13": [
+    {
+      "question": "During a research run, two of five target sources time out and become unavailable. The synthesis agent still has substantial findings from the three successful sources. How should the synthesis output be structured?",
+      "answers": [
+        "A. Return an error to the coordinator requesting a full retry once all sources are available.",
+        "B. Ask the coordinator to retry the timed-out sources before proceeding with synthesis.",
+        "C. Structure the synthesis output with coverage annotations indicating which findings are well-supported versus which topic areas have gaps due to unavailable sources.",
+        "D. Proceed with synthesis without indicating which findings are based on incomplete source coverage."
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "question": "A synthesis agent must produce a research report even though some sources were inaccessible during the run. How should the agent communicate the reliability of its findings?",
+      "answers": [
+        "A. Annotate the output to clearly distinguish well-supported findings from areas where source gaps exist.",
+        "B. Add a disclaimer at the end of the report noting that some sources were unavailable.",
+        "C. Omit topics where source data is incomplete to avoid presenting uncertain findings.",
+        "D. Mark the entire report as preliminary and request coordinator approval before delivery."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "A synthesis agent produces a polished final report with no indication that several source documents were unavailable during research. What problem does this create for the report's consumers?",
+      "answers": [
+        "A. The report is longer than necessary because empty sections are still included.",
+        "B. The synthesis agent will be called again unnecessarily because no errors were reported.",
+        "C. The coordinator cannot log the run correctly without failure metadata from the synthesis agent.",
+        "D. Consumers cannot distinguish between topics that were thoroughly researched and topics where findings may be incomplete due to missing sources."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "In research systems, output confidence annotation is the practice of marking findings with their evidential basis. Why is this especially important in multi-agent pipelines where some subagents may fail or return partial results?",
+      "answers": [
+        "A. Confidence annotations allow the pipeline to automatically retry low-confidence findings.",
+        "B. When subagent failures are possible, downstream consumers of the synthesis output need explicit markers to know which conclusions rest on complete evidence and which reflect partial or missing data.",
+        "C. Annotations reduce total synthesis token usage by compressing uncertain sections.",
+        "D. Confidence annotations are required by most orchestration frameworks for compliance logging."
+      ],
+      "correctAnswer": "B"
+    }
+  ],
+  "question14": [
+    {
+      "question": "A document analysis agent is given a fetch_url tool intended for loading documents, but it frequently uses it to query search engines and retrieve web pages instead. What is the most robust fix?",
+      "answers": [
+        "A. Add a blocklist of search engine domains to the fetch_url tool's implementation.",
+        "B. Remove fetch_url entirely and route all URL requests through the coordinator.",
+        "C. Replace fetch_url with a load_document tool that validates URLs point to document formats.",
+        "D. Add prompt instructions telling the agent to only use fetch_url for document URLs."
+      ],
+      "correctAnswer": "C"
+    },
+    {
+      "question": "An agent consistently misuses a general-purpose URL fetching tool to perform tasks outside its intended scope. How should the tool be redesigned to prevent misuse by design rather than by instruction?",
+      "answers": [
+        "A. Create a load_document tool that validates input URLs against allowed document format extensions before fetching.",
+        "B. Expand the tool's system prompt instructions to specify allowed and disallowed URL patterns.",
+        "C. Add a monitoring agent that audits tool calls and flags misuse.",
+        "D. Replace the tool with a more powerful version that can detect and block inappropriate queries."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "A developer attempts to fix agent tool misuse by adding detailed instructions to the agent's prompt specifying how the tool should and should not be used. Why is this approach less reliable than tool redesign?",
+      "answers": [
+        "A. Prompt instructions are not visible to the agent during tool execution.",
+        "B. Language models do not always follow negative constraints in prompts reliably; enforcement built into the tool interface is more deterministic.",
+        "C. Adding instructions increases the agent's context length, reducing its effective reasoning capacity.",
+        "D. Prompt-based constraints cannot be tested without running the full pipeline."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "Tool design in multi-agent systems follows the principle that constraints should be enforced at the interface level rather than relying on agent compliance. What does this principle suggest when an agent misuses a fetch_url tool?",
+      "answers": [
+        "A. All tool calls should require human approval to prevent misuse.",
+        "B. The agent should be retrained on examples that demonstrate correct tool usage.",
+        "C. The coordinator should validate all tool calls before execution.",
+        "D. The fetch_url tool should be replaced with a more narrowly scoped tool whose implementation enforces the intended usage, making misuse structurally impossible."
+      ],
+      "correctAnswer": "D"
+    }
+  ],
+  "question15": [
+    {
+      "question": "A monitoring system tracks subagent health by measuring their success rates. One agent returns 'access denied' errors while another returns '0 results found.' The monitoring system treats both as failures. What is wrong with this approach?",
+      "answers": [
+        "A. Both error types should be aggregated into a single success rate metric for simplicity.",
+        "B. Both error types should be reported as failures to ensure the coordinator retries them.",
+        "C. The system should have the subagent retry all transient failures internally before reporting.",
+        "D. Access failures (timeout) need retry decisions while valid empty results ('0 results') represent successful queries; treating them identically prevents appropriate recovery."
+      ],
+      "correctAnswer": "D"
+    },
+    {
+      "question": "A web search subagent sometimes returns 'no results found' and sometimes fails with a connection timeout. Both outcomes currently trigger the same retry logic. How should the coordinator differentiate between them?",
+      "answers": [
+        "A. Treat 'no results' as a successful query with empty findings, and treat the timeout as an infrastructure failure requiring retry or rerouting.",
+        "B. Retry all failure types twice before escalating to the coordinator.",
+        "C. Count both as failed queries and include them in the same failure metric.",
+        "D. Escalate both error types to a human operator for manual review."
+      ],
+      "correctAnswer": "A"
+    },
+    {
+      "question": "A coordinator retries a subagent every time it returns '0 results found,' assuming the empty result indicates a failure. What is wrong with this behavior?",
+      "answers": [
+        "A. The coordinator should not initiate retries; that responsibility belongs to the subagent.",
+        "B. Retrying empty results wastes computation because the query succeeded — it simply found nothing — and retrying will produce the same empty result.",
+        "C. Empty results always indicate a network error that cannot be resolved by retrying.",
+        "D. Retrying increases token usage beyond the budget allowed for the subagent."
+      ],
+      "correctAnswer": "B"
+    },
+    {
+      "question": "In distributed systems, distinguishing between different failure modes is essential for appropriate recovery. How does this principle apply to a multi-agent research coordinator that observes both infrastructure failures and legitimate empty results from its subagents?",
+      "answers": [
+        "A. All failure modes should be handled identically to simplify coordinator logic.",
+        "B. The coordinator should delegate all failure classification to a dedicated monitoring agent.",
+        "C. Infrastructure failures and empty results are semantically different: the former indicates a system problem requiring intervention, while the latter indicates a successful operation with no findings; conflating them leads to incorrect recovery actions.",
+        "D. The coordinator should always retry failures regardless of type to maximize data coverage."
+      ],
+      "correctAnswer": "C"
+    }
+  ]
+}
