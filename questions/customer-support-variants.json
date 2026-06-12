@@ -4,18 +4,18 @@
       "question": "Your customer support agent is making too many sequential API calls, slowing down response time. What is the most effective way to reduce the number of round-trips?",
       "answers": [
         "A. Prompt Claude to batch tool requests per turn, and return all tool results together before the next API call.",
-        "B. Increase max_tokens so Claude can complete more work in a single response.",
-        "C. Use speculative execution by pre-calling tools Claude is likely to need.",
-        "D. Create composite tools that bundle multiple operations into one callable function."
+        "B. Increase max_tokens to allow Claude to generate longer and more complete responses per turn, effectively cutting the total number of API round-trips across the conversation.",
+        "C. Implement speculative execution by pre-calling all tools Claude is likely to need based on request type, caching those results before Claude begins its reasoning step.",
+        "D. Create composite tools that bundle multiple discrete operations into a single callable function, reducing the total tool invocations the agent must issue per customer request."
       ],
       "correctAnswer": "A"
     },
     {
       "question": "A support agent queries the order database and the customer profile database in separate turns, doubling latency. How should this be addressed?",
       "answers": [
-        "A. Build composite tools that merge the two databases into a single API endpoint.",
-        "B. Pre-emptively call both tools before Claude decides it needs them.",
-        "C. Increase the context window so fewer turns are needed overall.",
+        "A. Build composite tools that merge both the order and customer profile database lookups into a single unified endpoint, so one tool call retrieves everything.",
+        "B. Pre-emptively call both lookup tools before Claude decides it needs them, caching their results so they are instantly available when Claude requests data.",
+        "C. Increase the context window budget so more tool results fit in a single prompt, reducing how often Claude must make a separate round-trip to retrieve data.",
         "D. Instruct Claude to issue all required tool calls in one turn and wait for all results before proceeding."
       ],
       "correctAnswer": "D"
@@ -45,20 +45,20 @@
     {
       "question": "Your agent consistently routes any message containing the word 'account' to the account management tool, even when the customer is asking about a billing refund. What is the most likely root cause?",
       "answers": [
-        "A. The tool descriptions lack negative examples showing when not to use the account tool.",
+        "A. The tool descriptions lack negative examples showing when not to use the account tool, causing the model to over-apply it whenever any remotely related term appears.",
         "B. The system prompt contains keyword-sensitive instructions that steer behavior based on terms like 'account,' creating unintended tool selection patterns.",
         "C. The model has learned incorrect associations during training that cannot be changed at inference time.",
-        "D. The agent needs fine-tuning on a labeled dataset of correct tool selections."
+        "D. The agent requires fine-tuning on a carefully balanced and labeled dataset of correct tool selection examples across all supported request categories."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "An e-commerce support agent always invokes the shipping_status tool whenever a customer mentions 'delivery,' even when they are complaining about a damaged item. Where should you look first?",
       "answers": [
-        "A. The model's pre-training data, which may have over-represented shipping queries.",
-        "B. The tool descriptions, which need more explicit negative usage examples.",
+        "A. The model's pre-training data, which may have over-represented shipping queries in its training corpus.",
+        "B. The tool descriptions, which need more explicit negative usage examples for the shipping tool.",
         "C. The system prompt, which likely has keyword-driven routing logic that triggers on 'delivery.'",
-        "D. The agent's fine-tuning checkpoint, which must be retrained with balanced examples."
+        "D. The agent's fine-tuning checkpoint, which must be retrained with more balanced examples."
       ],
       "correctAnswer": "C"
     },
@@ -97,7 +97,7 @@
     {
       "question": "A support bot incorrectly uses the cancel_order tool when customers ask to modify their order. What is the best first action?",
       "answers": [
-        "A. Limit the agent to fewer tools so the chance of picking the wrong one decreases.",
+        "A. Limit the agent to fewer tools so the statistical chance of picking the wrong one decreases.",
         "B. Build a separate intent classifier that intercepts requests before the agent processes them.",
         "C. Examine the descriptions of cancel_order and modify_order to ensure they clearly differentiate the two operations.",
         "D. Provide dozens of few-shot examples for every possible modification and cancellation pattern."
@@ -117,10 +117,10 @@
     {
       "question": "When an LLM agent consistently selects the wrong tool, what is the foundational diagnostic principle?",
       "answers": [
-        "A. Reduce the agent's option space first; more tools always increase error rates.",
+        "A. Reduce the agent's option space by removing less-used tools first; research shows that every additional tool in the set statistically increases error rates for all tools.",
         "B. The agent's tool selection is driven by the textual descriptions provided — ensuring those descriptions are clear and distinctive is the primary lever.",
-        "C. Fine-tuning on labeled routing data is the only reliable fix for persistent tool mis-selection.",
-        "D. Pre-processing classifiers are inherently more reliable than prompt-based tool descriptions for routing."
+        "C. Fine-tuning on a large labeled routing dataset is the only reliable method for correcting persistent tool mis-selection in production systems.",
+        "D. Pre-processing classifiers that intercept requests before the model runs are inherently more reliable than prompt-based tool descriptions for production routing."
       ],
       "correctAnswer": "B"
     }
@@ -129,9 +129,9 @@
     {
       "question": "Your support agent escalates nearly every complex case to a human, overwhelming the escalation queue. How should you calibrate its escalation behavior?",
       "answers": [
-        "A. Deploy a separate classifier model dedicated to escalation decisions.",
-        "B. Add sentiment analysis to only escalate when negative emotion is detected.",
-        "C. Require the agent to output a confidence score and escalate below a fixed threshold.",
+        "A. Deploy a dedicated external classifier model that scores each request for escalation likelihood, keeping that decision logic completely separate from the main support agent.",
+        "B. Add sentiment analysis to the pipeline so escalation only triggers when the customer's message scores above a threshold for negative emotional content.",
+        "C. Require the agent to output an explicit confidence score with each response and route to a human whenever the score falls below a fixed threshold.",
         "D. Add explicit escalation criteria to your system prompt with few-shot examples demonstrating when to escalate versus resolve autonomously."
       ],
       "correctAnswer": "D"
@@ -140,9 +140,9 @@
       "question": "A banking chatbot escalates routine balance inquiries to human agents because it cannot distinguish them from complex disputes. What is the most targeted fix?",
       "answers": [
         "A. Add explicit criteria and few-shot examples in the system prompt showing when escalation is and is not appropriate.",
-        "B. Implement a sentiment analysis layer that only escalates negative-sentiment messages.",
-        "C. Train a separate binary classifier on past escalation decisions.",
-        "D. Lower the model's temperature so it takes more conservative, less escalation-prone actions."
+        "B. Implement a sentiment analysis pipeline layer that captures the customer's emotional tone and automatically escalates all messages above a negative-sentiment threshold.",
+        "C. Train a dedicated binary classifier on historical escalation decisions and route all requests through it before they reach the main support agent.",
+        "D. Lower the model's temperature setting so it consistently takes more conservative and predictable actions, reducing the rate of unnecessary escalation decisions."
       ],
       "correctAnswer": "A"
     },
@@ -171,19 +171,19 @@
     {
       "question": "Your agent frequently picks the wrong tool when request intent is ambiguous. You decide to add few-shot examples. Which approach is most effective?",
       "answers": [
-        "A. Add 10–15 clear, unambiguous examples that demonstrate obviously correct tool usage.",
-        "B. Group examples by tool, listing every pattern that tool should handle.",
+        "A. Add 10–15 clear and unambiguous examples that each demonstrate an obviously correct tool usage with no competing alternatives that could cause confusion.",
+        "B. Group examples by tool type, listing every possible request pattern that tool should handle to ensure complete coverage of its intended usage space.",
         "C. Add 4–6 examples targeting ambiguous scenarios, each showing reasoning for why one tool was chosen over plausible alternatives.",
-        "D. Add 'use when / do not use when' sections directly inside each tool description."
+        "D. Add structured 'use when / do not use when' sections directly inside each tool description to establish clear conditional boundaries."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "A travel booking agent confuses the change_flight and cancel_flight tools for messages like 'I need to do something about my flight tomorrow.' Which few-shot strategy best resolves this?",
       "answers": [
-        "A. Provide 15 clear examples where the user explicitly says 'change' or 'cancel.'",
-        "B. Organize examples into two groups: one group for change_flight, one for cancel_flight.",
-        "C. Extend each tool's description with 'use when' and 'do not use when' clauses.",
+        "A. Provide 15 examples each featuring a message where the customer explicitly and unambiguously uses the word 'change' or 'cancel,' leaving no room for misinterpretation.",
+        "B. Organize examples into two separate sections — one for change_flight and one for cancel_flight — covering every common message pattern each tool should handle.",
+        "C. Extend each tool's description with a 'use when' clause listing trigger conditions and a 'do not use when' clause listing exceptions and similar but distinct scenarios.",
         "D. Provide 4–6 examples of genuinely ambiguous messages with explicit reasoning explaining why one tool was chosen over the other."
       ],
       "correctAnswer": "D"
@@ -213,10 +213,10 @@
     {
       "question": "In a long-running support conversation, the agent loses track of the original refund amount after several turns of summarized history. What is the best architectural fix?",
       "answers": [
-        "A. Revise the summarization prompt to always preserve numerical values.",
-        "B. Increase the summarization threshold to 85% so more raw history is retained.",
+        "A. Revise the summarization prompt to include an explicit instruction that numerical values like amounts, dates, and order IDs must always be preserved verbatim in the summary.",
+        "B. Increase the summarization trigger threshold to 85% context usage so that more raw conversation history is retained before any condensation begins.",
         "C. Extract transactional facts (amounts, dates, order numbers) into a persistent 'case facts' block included in each prompt, outside the summarized history.",
-        "D. Trigger external retrieval whenever the agent references a dollar amount or date."
+        "D. Configure external retrieval to fire automatically whenever the agent references a dollar amount or date in its response draft."
       ],
       "correctAnswer": "C"
     },
@@ -224,9 +224,9 @@
       "question": "A legal intake bot summarizes conversation history to stay within token limits, but later loses track of the case filing date and claim amount. How should this be solved?",
       "answers": [
         "A. Store key facts like dates and amounts in a dedicated persistent section that is never summarized away.",
-        "B. Increase the token budget so no summarization is needed.",
-        "C. Improve the summarization prompt with stronger instructions to keep numbers intact.",
-        "D. Retrieve missing facts from an external database whenever a reference phrase appears."
+        "B. Increase the total token budget for the session so no summarization is ever required, keeping the complete raw conversation history intact throughout the intake.",
+        "C. Strengthen the summarization prompt by adding an explicit, high-priority instruction that all numerical values including dollar amounts, dates, and IDs must be preserved verbatim.",
+        "D. Trigger retrieval from an external structured database automatically whenever the agent's draft output references a phrase that looks like a case-specific value."
       ],
       "correctAnswer": "A"
     },
@@ -243,10 +243,10 @@
     {
       "question": "When designing a long-context agent that must track specific transactional values across many turns, what architectural principle prevents data loss from summarization?",
       "answers": [
-        "A. Progressive summarization should be avoided entirely; raw history is always preferable.",
+        "A. Progressive summarization should be avoided entirely in long-context agents since raw conversation history always provides better grounding than any condensed representation.",
         "B. Structured, critical facts should be stored in a form that is immune to the summarization process — persisted separately and injected into every prompt.",
-        "C. Retrieval-augmented generation is the only reliable way to recover facts lost during summarization.",
-        "D. Increasing the summarization quality threshold makes fact retention reliable enough for production use."
+        "C. Retrieval-augmented generation is the only architecture that reliably recovers specific facts lost to summarization, making it the sole viable production solution.",
+        "D. Increasing the summarization quality threshold to a high enough value makes transactional fact retention sufficiently reliable for most production support use cases."
       ],
       "correctAnswer": "B"
     }
@@ -275,10 +275,10 @@
     {
       "question": "Which approach to multi-part customer requests leads to the SLOWEST resolution time?",
       "answers": [
-        "A. Decomposing into parallel investigations before synthesizing a single response.",
-        "B. Identifying all concerns upfront and investigating them simultaneously.",
+        "A. Decomposing the request into independent concerns and then investigating all of them in parallel before synthesizing a unified response.",
+        "B. Identifying all customer concerns upfront in a single analysis pass and then investigating them simultaneously with shared context.",
         "C. Handling each concern sequentially, one at a time, with a full tool call cycle per concern.",
-        "D. Sharing customer context across all concurrent sub-investigations."
+        "D. Sharing the customer's account context across all concurrent sub-investigations to avoid redundant lookups."
       ],
       "correctAnswer": "C"
     },
@@ -297,9 +297,9 @@
     {
       "question": "Your support agent handles multi-concern requests but frequently addresses only the first issue mentioned, ignoring subsequent ones. What is the most targeted fix?",
       "answers": [
-        "A. Consolidate all tools into a single comprehensive tool that handles any request type.",
-        "B. Add a response validator that detects incomplete answers and automatically re-prompts Claude.",
-        "C. Add a preprocessing layer that splits multi-concern messages before they reach the agent.",
+        "A. Consolidate all available tools into a single comprehensive multi-purpose tool that can handle any request type, eliminating selection ambiguity.",
+        "B. Add an automated response validator that checks each draft for completeness and re-prompts Claude with specific missing elements whenever gaps are detected.",
+        "C. Add a preprocessing layer that automatically identifies and splits multi-concern messages into separate single-concern requests before they reach the agent.",
         "D. Add few-shot examples to your prompt demonstrating the correct reasoning and tool sequence for multi-concern requests."
       ],
       "correctAnswer": "D"
@@ -307,10 +307,10 @@
     {
       "question": "A healthcare scheduling bot consistently books the requested appointment but forgets to also update the patient's insurance information when both are mentioned. How do you fix this?",
       "answers": [
-        "A. Merge scheduling and insurance update into a single combined tool.",
-        "B. Add a post-response validator that checks whether all mentioned tasks were completed.",
+        "A. Merge the scheduling tool and the insurance update tool into a single combined procedure so both actions are always performed atomically in one step.",
+        "B. Add a post-response automated validator that parses the agent's reply and checks whether every distinct task mentioned in the customer message was completed.",
         "C. Include few-shot examples in the prompt showing the agent identifying and addressing all parts of a multi-part request.",
-        "D. Add a preprocessing step that tags each concern type before the agent processes the message."
+        "D. Add a preprocessing step that parses the incoming message and tags each distinct concern type before the main agent begins processing the full request."
       ],
       "correctAnswer": "C"
     },
@@ -327,10 +327,10 @@
     {
       "question": "Why are few-shot examples particularly effective for improving multi-concern request handling compared to other prompt engineering techniques?",
       "answers": [
-        "A. They increase the model's token budget, allowing longer and more complete responses.",
+        "A. They increase the effective token budget available to the model, which allows it to generate longer and more complete responses that naturally cover all concerns.",
         "B. They demonstrate the reasoning process — how to identify, track, and address multiple issues — rather than just stating what to do.",
-        "C. They eliminate the need for tool descriptions since the model learns usage patterns from examples alone.",
-        "D. Automated validators are equally effective and should always be used alongside few-shot examples."
+        "C. They eliminate the need for explicit tool descriptions entirely, since the model infers complete usage patterns and constraints from the example interactions alone.",
+        "D. Automated post-response validators are equally effective at catching missed concerns and should always be deployed alongside few-shot examples for redundancy."
       ],
       "correctAnswer": "B"
     }
@@ -339,20 +339,20 @@
     {
       "question": "Your agent has access to both a search_orders tool and a lookup_order_status tool. It frequently chooses incorrectly between them. What is the most effective description improvement?",
       "answers": [
-        "A. Consolidate the two tools into one universal order tool.",
-        "B. Add a routing layer with keyword parsing to direct calls before Claude decides.",
+        "A. Consolidate the two tools into one universal order lookup tool with a parameter specifying what type of result is needed.",
+        "B. Add a keyword-parsing routing layer that intercepts Claude's selection and redirects it to the correct tool based on detected terms in the query.",
         "C. Expand each tool's description to include input formats it handles, example queries, edge cases, and boundaries explaining when to use it versus similar tools.",
-        "D. Add few-shot examples showing the correct tool for five common query patterns."
+        "D. Add five labeled few-shot examples in the system prompt, each showing the correct tool selection for a common order query pattern."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "A financial agent has separate tools for get_account_balance and get_transaction_history but often calls the wrong one. How should the tool definitions be improved?",
       "answers": [
-        "A. Merge them into a single get_account_info tool with a parameter specifying what to return.",
+        "A. Merge them into a single get_account_info tool with a required type parameter specifying whether to return balance, history, or both in one call.",
         "B. Enrich each description with accepted input formats, example use cases, edge cases, and explicit guidance on when to prefer it over the other tool.",
-        "C. Build a keyword-based preprocessor that routes 'balance' queries to one and 'history' queries to the other.",
-        "D. Add five labeled examples in the system prompt showing the correct tool for common financial queries."
+        "C. Build a keyword-based preprocessor that intercepts queries before Claude runs and routes 'balance' keywords to one tool and 'history' keywords to the other.",
+        "D. Add five labeled examples in the system prompt, each demonstrating the correct tool choice for a representative common financial query scenario."
       ],
       "correctAnswer": "B"
     },
@@ -369,10 +369,10 @@
     {
       "question": "What principle should guide the design of tool descriptions when multiple tools serve similar but distinct purposes?",
       "answers": [
-        "A. Descriptions should be kept minimal to avoid token overhead — brevity improves model focus.",
-        "B. Tool consolidation is always preferable to detailed descriptions when tools are closely related.",
+        "A. Tool descriptions should be kept as brief as possible to minimize token overhead and keep the model's attention focused on the task rather than the tool metadata.",
+        "B. Consolidating closely related tools into a single parameterized tool is always preferable to writing detailed descriptions, since it eliminates selection ambiguity entirely.",
         "C. Descriptions should provide enough contextual detail — including examples, boundaries, and contrasts with similar tools — for the model to make informed selections.",
-        "D. Keyword-based routing outside the model is the most reliable alternative to well-written descriptions."
+        "D. A keyword-based routing layer that intercepts tool selection before the model runs is a more reliable approach than relying on natural language descriptions alone."
       ],
       "correctAnswer": "C"
     }
@@ -381,30 +381,30 @@
     {
       "question": "Customers frequently need to send follow-up messages because the agent's initial response is incomplete. What is the most effective architectural change?",
       "answers": [
-        "A. Add few-shot examples covering the five most common case types.",
-        "B. Upgrade to a higher model tier for all complex cases.",
+        "A. Add five or six few-shot examples to the system prompt that each demonstrate a complete and thorough response to the most common support case types.",
+        "B. Upgrade to a higher model tier for all complex cases, trusting that improved baseline capability will naturally produce more complete responses.",
         "C. Add a self-critique step where the agent evaluates its draft response for completeness—ensuring it addresses the customer's concern, includes relevant context, and anticipates follow-up questions.",
-        "D. Add a confirmation step that asks the customer whether their issue was resolved before closing the ticket."
+        "D. Add a customer confirmation step at the end of each response that explicitly asks whether the issue was fully resolved before the ticket is closed."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "A government services chatbot often gives partial answers that require citizens to ask two or three follow-up questions. What change most directly reduces this?",
       "answers": [
-        "A. Use a more powerful model for all citizen requests to improve inherent response quality.",
+        "A. Upgrade to a more powerful frontier model for all citizen requests and rely on its improved baseline instruction-following to generate more complete answers.",
         "B. Add a self-review step in which the agent checks its drafted answer against criteria: does it fully address the question, provide relevant context, and preempt obvious follow-ups?",
-        "C. Collect the five most common incomplete-response patterns and add them as few-shot examples.",
-        "D. Prompt the citizen to confirm resolution before the session ends."
+        "C. Collect the five most common incomplete-response patterns from production support logs and add them as carefully labeled few-shot examples paired with complete model answers in the system prompt.",
+        "D. Prompt the citizen to explicitly confirm whether their question was fully resolved before the session ends, treating that confirmation as the primary quality signal."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "Which approach LEAST directly addresses the root cause of incomplete agent responses?",
       "answers": [
-        "A. Instructing the agent to review its own draft for completeness before sending.",
-        "B. Asking the agent to anticipate likely follow-up questions and address them proactively.",
+        "A. Instructing the agent to review its own draft response against a completeness checklist before sending it to the customer.",
+        "B. Asking the agent to explicitly anticipate the two most likely follow-up questions and preemptively address them in the initial response.",
         "C. Switching to a higher model tier and relying on improved baseline capability.",
-        "D. Prompting the agent to check that its response fully covers the customer's stated concern."
+        "D. Prompting the agent to verify that its final response fully covers every aspect of the customer's stated concern before delivery."
       ],
       "correctAnswer": "C"
     },
@@ -423,40 +423,40 @@
     {
       "question": "Your agentic loop keeps calling tools even after Claude has finished and provided a final answer. How should the loop termination logic work?",
       "answers": [
-        "A. Stop iterating when Claude's response contains visible text content addressed to the customer.",
+        "A. Stop iterating whenever Claude's response contains any visible assistant-role text content addressed to the customer, treating text presence as the completion signal.",
         "B. Check the stop_reason field in Claude's response—continue when it equals 'tool_use' and stop when it equals 'end_turn'.",
-        "C. Use a maximum iteration counter and stop after a fixed number of turns regardless of state.",
-        "D. Parse Claude's text output for phrases like 'Is there anything else I can help you with?' to detect completion."
+        "C. Use a maximum iteration counter and unconditionally stop the loop after a fixed number of turns regardless of whether a final answer has been reached.",
+        "D. Parse Claude's text output for natural language completion phrases like 'Is there anything else I can help you with?' and break the loop when they are detected."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "An automated invoice processing agent keeps re-running tool calls after the invoice has already been filed. What is the correct way to detect that the workflow is complete?",
       "answers": [
-        "A. Count the number of tool calls made and stop after reaching a predefined limit.",
-        "B. Inspect the response for assistant-role text content and stop when text is present.",
+        "A. Count the cumulative number of tool calls made during the session and stop the loop after reaching a predefined maximum to prevent runaway processing.",
+        "B. Inspect the raw response for the presence of assistant-role text content and stop processing once any non-empty text block appears in the response.",
         "C. Check the API response's stop_reason — halt processing when it is 'end_turn' and continue when it is 'tool_use.'",
-        "D. Scan the model's output for completion keywords and break the loop when they appear."
+        "D. Scan the model's text output for known natural-language completion keywords and programmatically break the loop when any of them are matched."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "Which loop termination strategy is MOST fragile in production?",
       "answers": [
-        "A. Checking stop_reason equals 'end_turn' to halt and 'tool_use' to continue.",
-        "B. Relying on a maximum iteration cap as a safety net only, with stop_reason as the primary signal.",
+        "A. Checking the API response's stop_reason field: halting when it equals 'end_turn' and continuing when it equals 'tool_use.'",
+        "B. Relying on a maximum iteration cap as a safety net of last resort, with stop_reason serving as the primary termination signal.",
         "C. Parsing the assistant's response text for natural language completion phrases.",
-        "D. Treating the absence of tool_use blocks in the response as a termination signal."
+        "D. Treating the absence of any tool_use content blocks in the API response as the primary termination signal for the agentic loop."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "What is the fundamental principle for correctly implementing agentic loop termination when using Claude's tool-use API?",
       "answers": [
-        "A. Loop termination should rely on the content of the model's text output because that is the most human-interpretable signal.",
-        "B. A hard iteration limit is the safest primary termination mechanism because it prevents infinite loops.",
+        "A. Loop termination should rely on the content of the model's text output because human-readable text is the most interpretable and auditable completion signal available.",
+        "B. A hard iteration limit set to a conservative maximum is the safest primary termination mechanism because it guarantees the loop cannot run indefinitely under any conditions.",
         "C. The API's structured stop_reason field is the authoritative signal for whether the model expects more tool results or has reached a final answer.",
-        "D. Presence of assistant-role text in the response is equivalent to stop_reason='end_turn' and can be used interchangeably."
+        "D. Presence of assistant-role text content in the response is semantically equivalent to stop_reason='end_turn' and can be used as an interchangeable termination condition."
       ],
       "correctAnswer": "C"
     }
@@ -465,9 +465,9 @@
     {
       "question": "Your agent uses five tools — three you built and two from third-party vendors. Tool results come back in inconsistent formats. What is the most maintainable solution?",
       "answers": [
-        "A. Modify your three tools to return a standard format and write wrappers for the two third-party tools.",
-        "B. Document the format differences in the system prompt and let Claude handle the inconsistency.",
-        "C. Create a normalize_data tool that Claude must explicitly call after every other tool.",
+        "A. Modify your three owned tools to return a standard output format and write thin adapter wrappers around the two third-party tools to match the same schema.",
+        "B. Document all five different format variations in the system prompt and rely on Claude's instruction-following to adaptively handle the inconsistency at reasoning time.",
+        "C. Create a dedicated normalize_data tool that Claude must explicitly invoke as a mandatory step after every other tool call returns a result.",
         "D. Use a PostToolUse hook to intercept tool results and apply formatting transformations before agent processing."
       ],
       "correctAnswer": "D"
@@ -475,10 +475,10 @@
     {
       "question": "A data pipeline agent consumes results from six external APIs, each returning timestamps in a different format (ISO 8601, Unix epoch, human-readable strings). Normalizing in application code is fragile. What is the cleanest architectural approach?",
       "answers": [
-        "A. Describe all timestamp formats in the system prompt and rely on Claude to normalize them.",
-        "B. Add a normalize_timestamps tool that Claude must call after every API response.",
+        "A. Document all six timestamp format variations in the system prompt and rely on Claude's reasoning to normalize them dynamically as part of its response generation.",
+        "B. Add a normalize_timestamps tool that Claude must explicitly call after receiving each API response before proceeding to the next step.",
         "C. Apply a PostToolUse hook that transforms all tool results into a canonical format before Claude processes them.",
-        "D. Modify each external API's client library to return a uniform format."
+        "D. Modify each of the six external API client libraries to serialize timestamps in a uniform format before returning results to the agent."
       ],
       "correctAnswer": "C"
     },
@@ -495,10 +495,10 @@
     {
       "question": "What principle makes PostToolUse hooks the preferred solution for normalizing tool outputs in a mixed first-party/third-party tool environment?",
       "answers": [
-        "A. Hooks execute asynchronously, which prevents tool result latency from blocking the main agent loop.",
+        "A. Hooks execute asynchronously in a separate thread, which prevents tool result processing latency from blocking or delaying the main agent conversation loop.",
         "B. Hooks allow centralized, transparent transformation of results before the model reasons over them, without requiring changes to tools you do not own.",
-        "C. Hooks are natively supported by all LLM providers, making them the most portable solution.",
-        "D. Hooks reduce token usage by compressing tool results before they enter the context window."
+        "C. Hooks are a standard feature natively supported by all major LLM API providers, making this pattern the most portable and vendor-agnostic solution available.",
+        "D. Hooks automatically compress and deduplicate tool results before they enter the context window, meaningfully reducing token consumption across long agentic sessions."
       ],
       "correctAnswer": "B"
     }
@@ -507,9 +507,9 @@
     {
       "question": "When your agent calls get_customer with a common name, the tool sometimes returns multiple matching records. What should the agent do next?",
       "answers": [
-        "A. Implement a confidence scoring system and automatically select the highest-confidence match.",
-        "B. Modify get_customer to internally filter and return only the single best match.",
-        "C. Add few-shot examples teaching the agent to infer the correct customer from conversational context.",
+        "A. Implement a confidence scoring system within the lookup tool and automatically select whichever record has the highest score without asking the customer for confirmation.",
+        "B. Modify the get_customer tool's internal logic to pre-filter ambiguous results and always return only the single best match based on recency or activity.",
+        "C. Add few-shot examples to the system prompt that teach the agent to infer the correct customer from contextual cues in the conversation without explicit confirmation.",
         "D. Instruct Claude to ask for an additional identifier (email, phone, or order number) when get_customer returns multiple matches, before taking any customer-specific action."
       ],
       "correctAnswer": "D"
@@ -517,10 +517,10 @@
     {
       "question": "A healthcare scheduling bot looks up patients by name and occasionally finds two patients with identical names in the system. What is the safest approach to disambiguation?",
       "answers": [
-        "A. Automatically select the patient whose most recent appointment is closest to today.",
+        "A. Automatically select the patient whose most recent scheduled appointment is closest to today's date and proceed without requesting any confirmation.",
         "B. Prompt the agent to request a secondary identifier — date of birth, insurance ID, or phone number — before accessing any patient-specific data.",
-        "C. Modify the lookup function to return only the highest-ranked match based on internal scoring.",
-        "D. Train the agent with examples of how to infer the correct patient from context clues in the message."
+        "C. Modify the patient lookup function to internally score all matching records and return only the single highest-ranked result without surfacing the ambiguity.",
+        "D. Train the agent with labeled few-shot examples demonstrating how to correctly infer the intended patient from contextual cues embedded in the appointment request."
       ],
       "correctAnswer": "B"
     },
@@ -537,10 +537,10 @@
     {
       "question": "What is the underlying principle for safely handling ambiguous entity lookup results in an agentic customer support system?",
       "answers": [
-        "A. Automated disambiguation using confidence scores is preferable because it avoids friction in the customer experience.",
+        "A. Automated disambiguation using internal confidence scores is the preferred approach because it eliminates friction from the customer experience and keeps the interaction flowing smoothly.",
         "B. When identity cannot be unambiguously established, the agent should pause and obtain additional verification before performing any action on behalf of a specific customer.",
-        "C. Modifying the underlying lookup tool to pre-filter results is always the cleanest solution to ambiguity.",
-        "D. Few-shot examples of contextual inference are sufficient to train the agent to select the correct match reliably."
+        "C. Modifying the underlying lookup tool's internal filtering logic to always return the single best match is the cleanest architectural solution to identity ambiguity.",
+        "D. A well-curated set of few-shot examples demonstrating contextual inference is sufficient to reliably train the agent to identify the correct matching record in production."
       ],
       "correctAnswer": "B"
     }
@@ -549,20 +549,20 @@
     {
       "question": "Which scenario should a customer support agent ESCALATE rather than resolve autonomously?",
       "answers": [
-        "A. A customer provides contradictory delivery evidence — the tracking system shows delivered but the customer claims non-receipt.",
+        "A. A customer provides contradictory delivery evidence where the tracking system shows the package as delivered but the customer insists with photos that it was never received.",
         "B. A customer requests a price match against a competitor. Your policies allow adjustments for price drops on your own site within 14 days but are silent on competitor pricing.",
-        "C. A customer wants to cancel a recently shipped order, and your policy allows cancellation with a return label.",
-        "D. A customer reports both a billing discrepancy and a missing item in the same message."
+        "C. A customer wants to cancel a recently shipped order, and your policy explicitly allows cancellation requests for any order still within the return window with a prepaid label.",
+        "D. A customer reports both a billing discrepancy and a missing item in the same message, creating a multi-concern request that requires parallel investigation."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "A travel agent AI must decide whether to escalate a request. A customer asks for a hotel room upgrade at a partner property using loyalty points from a program your company does not administer. Your policies cover loyalty redemptions for your own program only. What should the agent do?",
       "answers": [
-        "A. Attempt to process the upgrade using the closest available internal loyalty redemption flow.",
-        "B. Deny the request immediately because it falls outside defined policy scope.",
+        "A. Attempt to process the upgrade using the closest available internal loyalty redemption workflow, applying the loyalty points as if they were your company's standard currency.",
+        "B. Immediately deny the request and inform the customer it falls outside defined policy scope, providing no further guidance or alternative resolution path.",
         "C. Escalate to a human agent because the situation involves a third-party program that the agent's policies do not cover.",
-        "D. Ask the customer to contact the partner property directly without escalating internally."
+        "D. Ask the customer to contact the partner property directly and close the ticket internally without any escalation or follow-up from your team."
       ],
       "correctAnswer": "C"
     },
@@ -579,10 +579,10 @@
     {
       "question": "What is the defining characteristic of a situation that requires escalation rather than autonomous resolution?",
       "answers": [
-        "A. The customer is expressing strong negative sentiment, which always warrants human empathy.",
-        "B. The request involves multiple issues at once, exceeding the agent's single-concern handling capability.",
+        "A. The customer is expressing strong negative sentiment, which always warrants reassignment to a human agent who can provide empathy and repair the relationship.",
+        "B. The request involves multiple issues simultaneously, exceeding the agent's designed single-concern handling capability and requiring a specialist.",
         "C. The situation falls outside the scope of defined policies, requiring human judgment to interpret or extend policy.",
-        "D. The agent cannot locate the customer's account, making resolution technically impossible."
+        "D. The agent cannot locate the customer's account in any available system, making technical resolution completely impossible without human intervention."
       ],
       "correctAnswer": "C"
     }
@@ -591,9 +591,9 @@
     {
       "question": "Your agent sometimes calls lookup_order or process_refund before successfully identifying the customer, causing errors. What is the most robust fix?",
       "answers": [
-        "A. Enhance the system prompt with clear instructions to always call get_customer first.",
-        "B. Build a routing classifier that ensures get_customer is always the first tool invoked.",
-        "C. Add few-shot examples demonstrating the correct call order: get_customer → lookup_order → process_refund.",
+        "A. Enhance the system prompt with explicit, high-priority instructions requiring the agent to always call get_customer as the very first tool before any other operation.",
+        "B. Build a dedicated routing classifier that intercepts each tool invocation request and ensures get_customer is always the first tool invoked in every session.",
+        "C. Add several few-shot examples to the system prompt that each demonstrate the correct sequential call order: get_customer → lookup_order → process_refund.",
         "D. Add a programmatic prerequisite that blocks lookup_order and process_refund calls until get_customer has returned a verified customer ID."
       ],
       "correctAnswer": "D"
@@ -601,10 +601,10 @@
     {
       "question": "An HR system agent can update employee records, run payroll calculations, and generate contracts. Occasionally it attempts record updates before the employee identity is verified. How should this be prevented most reliably?",
       "answers": [
-        "A. Write detailed system prompt instructions requiring identity verification before any write operation.",
+        "A. Write detailed, high-priority system prompt instructions that explicitly require the agent to complete identity verification before attempting any record update or write operation.",
         "B. Implement a code-level guard that blocks all write tools until verify_employee has returned a confirmed ID.",
-        "C. Add few-shot examples of the correct verification-first workflow.",
-        "D. Deploy a preprocessing classifier that checks whether identity has been established before forwarding tool calls."
+        "C. Add several labeled few-shot examples to the system prompt that each model the correct verification-first workflow with the expected tool call order.",
+        "D. Deploy a preprocessing classifier in the tool dispatch layer that checks whether employee identity has been established before forwarding any write tool call."
       ],
       "correctAnswer": "B"
     },
@@ -621,10 +621,10 @@
     {
       "question": "What principle distinguishes programmatic prerequisite enforcement from prompt-based enforcement for critical tool sequencing?",
       "answers": [
-        "A. Prompt-based enforcement is preferred for security-critical flows because it is more transparent and auditable.",
-        "B. Programmatic enforcement is redundant when few-shot examples clearly model the correct sequence.",
+        "A. Prompt-based enforcement is preferred for security-critical tool sequencing flows because natural language instructions produce human-readable audit trails that compliance and security teams can review and verify.",
+        "B. Programmatic enforcement is entirely redundant when few-shot examples clearly and consistently model the correct sequence, since a well-prompted model will reliably follow demonstrated patterns without additional code-level checks.",
         "C. Programmatic enforcement guarantees the constraint at the execution layer, making it impossible to bypass regardless of model output, whereas prompt instructions can be ignored or misapplied.",
-        "D. Both approaches are equivalent in reliability; the choice depends solely on implementation convenience."
+        "D. Both approaches offer equivalent practical reliability in production systems; the choice between programmatic and prompt-based enforcement depends entirely on implementation convenience and team technical preference."
       ],
       "correctAnswer": "C"
     }

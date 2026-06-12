@@ -3,9 +3,9 @@
     {
       "question": "A pull request modifies 14 files across the stock tracking module. Your single-pass review analyzing all files together produces inconsistent results: detailed feedback for some files but superficial comments for others, obvious bugs missed, and contradictory feedback—flagging a pattern as problematic in one file while approving identical code elsewhere in the same PR. How should you restructure the review?",
       "answers": [
-        "A. Run three independent review passes on the full PR and only flag issues that appear in at least two of the three runs.",
-        "B. Switch to a higher-tier model with a larger context window to give all 14 files adequate attention in one pass.",
-        "C. Require developers to split large PRs into smaller submissions of 3–4 files before the automated review runs.",
+        "A. Run three independent review passes across all 14 files simultaneously, then consolidate only findings that appear in at least two of the three passes to reduce noise and inconsistency.",
+        "B. Switch to a higher-tier model with a 200k-token context window capable of holding all 14 files simultaneously and producing uniform attention across every section of the pull request.",
+        "C. Require developers to split large pull requests into batches of 3–4 files each before submitting, so the automated review can analyze each batch thoroughly in a single focused pass.",
         "D. Split into focused passes: analyze each file individually for local issues, then run a separate integration-focused pass examining cross-file data flow."
       ],
       "correctAnswer": "D"
@@ -13,29 +13,28 @@
     {
       "question": "Your review agent processes an entire microservice migration PR—22 files—in one shot. Output quality is inconsistent: some modules receive detailed analysis, others get one-line summaries, and feedback contradicts itself across files. The context window is not exceeded. What is the most likely root cause and fix?",
       "answers": [
-        "A. The model is not given enough processing time; increase the pipeline timeout parameter.",
+        "A. The model degrades in quality when given insufficient processing time for multi-file inputs; increasing the pipeline timeout parameter would allow it to complete consistent, thorough reviews.",
         "B. Attention quality degrades when many files share a single context; split into per-file passes plus a separate integration pass.",
-        "C. The prompt lacks explicit ordering instructions; add 'review files alphabetically' to the system prompt.",
-        "D. The model needs more examples; add 10 few-shot examples of thorough file reviews."
+        "C. The prompt lacks är output consistency."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "A team member proposes solving inconsistent multi-file PR reviews by switching to a model with a 200k-token context window, arguing it can hold all files at once and produce uniform analysis. What is the fundamental flaw in this reasoning?",
       "answers": [
-        "A. The proposal is valid — a 200k-token model would resolve the inconsistency.",
-        "B. 200k-token models are too expensive for CI/CD pipelines and the cost cannot be justified.",
+        "A. The proposal is entirely valid — a 200k-token model holds all files simultaneously and distributes attention equally across every section for uniform, consistent feedback.",
+        "B. 200k-token models are prohibitively expensive for high-frequency CI/CD pipelines, and the marginal improvement in review quality cannot justify the increased per-request cost.",
         "C. A larger context window does not fix attention degradation across many files; focused per-file passes are still needed.",
-        "D. Larger context windows increase latency beyond acceptable CI thresholds."
+        "D. Larger context windows significantly increase model inference latency, pushing automated review turnaround times beyond acceptable thresholds for blocking pull request workflows."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "When a Claude-based review system produces inconsistent output quality across a large input divided into many sections, what structural change most reliably improves consistency?",
       "answers": [
-        "A. Retry failed sections with increased temperature for more creative analysis.",
-        "B. Add explicit instructions to 'be consistent' and 'treat all sections equally.'",
-        "C. Reduce input size by summarizing each section before passing it to the model.",
+        "A. Retry each inconsistently reviewed section with a higher temperature setting, using the increased output variance to eventually produce more thorough and complete feedback.",
+        "B. Add explicit consistency instructions directing the model to maintain equal analysis depth across every section, and flag any section it cannot review comprehensively.",
+        "C. Reduce overall input size by summarizing each section to a fixed token budget before analysis, ensuring no single section dominates the model's attention capacity.",
         "D. Replace the single large prompt with decomposed focused prompts, each covering a specific subset or concern."
       ],
       "correctAnswer": "D"
@@ -56,20 +55,20 @@
     {
       "question": "A documentation generator produces inconsistently formatted API docs despite a prompt that says 'always include parameters, return type, and example usage.' Some functions get all three; others only get a description. Explicit instructions haven't fixed it. What change would most reliably produce uniform output?",
       "answers": [
-        "A. Increase the model temperature to encourage more complete responses.",
-        "B. Break the task into three separate prompts—one per documentation component.",
+        "A. Increase the model temperature to produce more varied and complete outputs, relying on higher randomness to surface all required documentation components.",
+        "B. Decompose the task into three focused prompts — one each for parameters, return type, and usage examples — allowing each sub-task to generate a single component reliably.",
         "C. Add few-shot examples showing exactly what complete, correctly formatted docs look like for 3–4 functions.",
-        "D. Implement output validation that rejects incomplete docs and retries the request."
+        "D. Implement an automated output validator that checks for all three required documentation components and triggers automatic retries until a complete response is returned."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "A developer tries to fix inconsistent review output by writing increasingly detailed instructions: 'always include the exact line number,' 'always suggest the specific fix,' 'never omit the severity rating.' Despite five rounds of instruction refinement, output remains inconsistent. Why isn't this approach working?",
       "answers": [
-        "A. The model ignores instructions longer than a certain character count.",
-        "B. The prompt is missing a system role declaration that activates instruction-following mode.",
+        "A. The model silently discards prompt instructions beyond a certain total character count, so each additional formatting refinement has no measurable effect on its output behavior.",
+        "B. The prompt is missing a system-role declaration that activates the model's instruction-following mode; without it, all formatting directives are treated as optional suggestions.",
         "C. The instructions target the wrong layer — they describe the desired format but never demonstrate it through examples.",
-        "D. Instruction-based formatting only works reliably with fine-tuned models, not general-purpose ones."
+        "D. Instruction-based format enforcement only works reliably with models specifically fine-tuned for structured output; general-purpose models require in-prompt demonstrations instead."
       ],
       "correctAnswer": "C"
     },
@@ -78,8 +77,8 @@
       "answers": [
         "A. Constrain the output using a JSON schema or regex validation and retry on failure.",
         "B. Provide demonstrations of the desired format through few-shot examples embedded within the prompt.",
-        "C. Simplify the format requirements until the model can follow them reliably.",
-        "D. Increase the specificity and length of the formatting instructions."
+        "C. Simplify format requirements incrementally, removing optional fields until the model reliably produces minimal structure before adding complexity back.",
+        "D. Increase the length and specificity of formatting instructions, adding explicit rules for each required field and concrete examples of malformed output to avoid."
       ],
       "correctAnswer": "B"
     }
@@ -99,9 +98,9 @@
     {
       "question": "A Claude-based bug classifier labels identical exception patterns as 'high priority' in one service and 'low priority' in another. The prompt says 'rate priority based on potential user impact' but gives no further guidance. What change would most improve rating consistency?",
       "answers": [
-        "A. Add a rule: 'always mark unhandled exceptions as high priority.'",
-        "B. Ask the model to compare findings across services before assigning priority.",
-        "C. Add a post-processing step that normalizes priority distributions to a fixed ratio.",
+        "A. Add a hardcoded rule requiring all unhandled exceptions to be marked as high priority, using exception type as a reliable proxy for potential user impact.",
+        "B. Instruct the model to compare findings across all services before assigning priority, using relative severity ranking as the calibration mechanism.",
+        "C. Implement a post-processing normalization step that redistributes priority labels to match a fixed target ratio, overriding the model's contextual judgment.",
         "D. Define each priority level with concrete examples of code patterns that qualify for that level."
       ],
       "correctAnswer": "D"
@@ -186,7 +185,7 @@
       "question": "An agent that summarizes support tickets first calls a tool to fetch ticket history, incorporates those results, then produces a summary. A developer proposes migrating this agent to batch processing. What technical limitation must they account for?",
       "answers": [
         "A. Batch processing limits requests to 1,000 inputs per batch, which may be insufficient.",
-        "B. Batch requests cannot include conversation history from prior sessions.",
+        "B. Batch requests lock the conversation state at submission time and cannot incorporate mid-session history from prior turns, preventing multi-turn agents from being processed.",
         "C. The agent's mid-request tool call requires a synchronous response loop that batch processing cannot support.",
         "D. Batch outputs arrive in random order, making it impossible to match summaries to original tickets."
       ],
@@ -195,9 +194,9 @@
     {
       "question": "A developer argues: 'We can use the Batch API for our tool-calling agent—we'll just include all potentially needed files in the initial request so it never needs to call tools mid-flight.' What is the main problem with this approach?",
       "answers": [
-        "A. There is no problem with this approach—it is a valid and efficient workaround.",
-        "B. The Batch API has a strict input size limit that prevents including multiple files.",
-        "C. The Batch API does not support multi-file inputs; only single-file requests are permitted.",
+        "A. There is no problem with this approach — preloading all relevant files is a valid, efficient workaround that eliminates the need for dynamic tool calls entirely.",
+        "B. The Batch API enforces a strict maximum input size per request, making it technically infeasible to include multiple complete source files in a single batch submission.",
+        "C. The Batch API explicitly prohibits multi-file inputs by design and accepts only single-file document requests, returning an error on any multi-file payload.",
         "D. Preloading all possible files adds irrelevant context and noise, and you cannot know in advance exactly which files will be needed."
       ],
       "correctAnswer": "D"
@@ -228,8 +227,8 @@
     {
       "question": "A documentation linter prompt says 'ensure all API docs are complete.' It raises warnings on endpoints that have minimal but accurate docs, while missing endpoints whose docs describe a deprecated request format. What change targets the root cause?",
       "answers": [
-        "A. Add a minimum word count requirement to prevent sparse documentation.",
-        "B. Add few-shot examples of complete documentation to show the model what 'complete' means.",
+        "A. Add a minimum word count threshold as the completeness definition, flagging any documentation entry that falls below the required length.",
+        "B. Include few-shot examples of fully complete API documentation to help the model recognize and replicate the expected structure and detail level.",
         "C. Include the git history of each doc file so the model can detect stale content.",
         "D. Redefine the check: flag documentation only where the described API contract differs from the actual implementation."
       ],
@@ -238,9 +237,9 @@
     {
       "question": "To reduce noise in comment analysis, a team adds a pre-filter that strips all TODO and FIXME comments before sending code to Claude. After the change, false positives drop but real issues (code behavior differing from comment description) are still missed. What does this reveal about the original problem?",
       "answers": [
-        "A. The filter was too aggressive and should be narrowed to only remove FIXME comments.",
-        "B. The pre-filter approach was correct; the remaining misses indicate the model needs fine-tuning.",
-        "C. The filter introduced a regression by removing context Claude needed for accurate analysis.",
+        "A. The filter was too aggressive and should be narrowed to only remove FIXME-prefixed comments while preserving TODO markers.",
+        "B. The pre-filter approach was fundamentally correct; the remaining misses indicate the model itself requires fine-tuning on this comment type.",
+        "C. The filter removed context that Claude relied on to evaluate comment accuracy, creating a performance regression in the behavioral contradiction analysis.",
         "D. The root problem was never the comment types flagged but the absence of a behavioral-contradiction criterion."
       ],
       "correctAnswer": "D"
@@ -271,10 +270,10 @@
     {
       "question": "A security scan runs on every CI push. After a developer fixes 3 of 5 flagged vulnerabilities and pushes again, the scan re-flags all 5—including the 2 that were already remediated. The scan prompt has no awareness of prior runs. What is the most direct fix?",
       "answers": [
-        "A. Limit re-scans to only newly added lines of code.",
-        "B. Require developers to mark issues as 'resolved' in the ticketing system before re-scanning.",
+        "A. Limit re-scans to only the newly modified diff lines in the latest push, excluding any file lines that were present in the previous scan.",
+        "B. Require developers to manually mark each issue as resolved in the issue tracker before the next automated security scan is triggered.",
         "C. Include the previous scan's findings in the prompt and instruct the model to only surface unresolved or new issues.",
-        "D. Add a deduplication hash of findings that persists between runs and filters identical results."
+        "D. Implement a hash-based deduplication system that persists finding fingerprints between consecutive runs and automatically filters identical results."
       ],
       "correctAnswer": "C"
     },
@@ -314,9 +313,9 @@
     {
       "question": "A dependency risk checker flags 20 packages per report. Developers say evaluation takes too long because each flag requires manual research to determine if it's a real risk. Stakeholders insist all flagged packages must remain visible. What change best speeds up triage?",
       "answers": [
-        "A. Reduce the number of packages flagged by raising the internal confidence threshold.",
-        "B. Group flagged packages by risk type to reduce cognitive switching during triage.",
-        "C. Add a 'dismiss' button that submits feedback used to retrain the model over time.",
+        "A. Reduce the volume of flagged packages by raising the internal confidence threshold, accepting fewer but higher-confidence flags per report.",
+        "B. Group flagged packages by their vulnerability type category to reduce cognitive load developers experience when switching between different risk types.",
+        "C. Add a single-click dismissal button per finding that records developer feedback and feeds it into the model's ongoing calibration and confidence scoring.",
         "D. Include model reasoning and confidence level alongside each flagged package so developers can quickly assess credibility without manual research."
       ],
       "correctAnswer": "D"
@@ -324,20 +323,20 @@
     {
       "question": "A developer proposes fixing the investigation time problem by setting a high confidence threshold so Claude only shows findings it's 'very sure' about. A stakeholder rejects this because it might suppress real bugs. The developer then proposes showing all findings but adding color-coding by severity. Why does this fail to address the root bottleneck?",
       "answers": [
-        "A. Color-coding by severity is not supported by the code review platform's API.",
-        "B. Color-coding adds visual noise that slows down review further.",
+        "A. Color-coding by severity is not natively supported by the code review platform's API and requires building a custom rendering extension.",
+        "B. Color-coding severity levels adds an additional visual dimension developers must interpret, increasing overall cognitive load and slowing reviews further.",
         "C. Severity tells developers what matters most but doesn't explain whether each finding is valid, which is the actual investigation cost.",
-        "D. This would actually solve the problem; the stakeholder objection is not technically valid."
+        "D. Color-coding would fully resolve the investigation time problem; the stakeholder objection about potential real bug suppression is technically unfounded."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "When developer triage of automated findings takes too long and you cannot reduce the number of findings shown, what information addition most directly reduces per-finding evaluation time?",
       "answers": [
-        "A. Linking each finding to its relevant documentation or coding standard.",
+        "A. Linking each finding to its relevant coding standard documentation so developers can immediately verify whether the guideline applies to their case.",
         "B. Including the model's reasoning and confidence level with each finding so developers can quickly judge its validity.",
-        "C. Grouping findings by file so developers can batch-process related issues.",
-        "D. Adding an estimated fix time to each finding to help with prioritization."
+        "C. Grouping findings by source file so developers can process all findings for a given file in a single focused review session.",
+        "D. Appending an estimated fix-time to each finding so developers can prioritize their review queue by total remediation effort."
       ],
       "correctAnswer": "B"
     }
@@ -367,9 +366,9 @@
     {
       "question": "A developer redirects stdin from `/dev/null` to prevent Claude Code from waiting for interactive input in CI: `claude \"Review this code\" < /dev/null`. The job still hangs. Why didn't this work?",
       "answers": [
-        "A. `/dev/null` redirection only works in bash, not in the POSIX sh used by most CI runners.",
-        "B. The developer should have used `/dev/zero` instead of `/dev/null` to properly suppress input.",
-        "C. Stdin redirection works correctly; the hang must be caused by a different issue in the pipeline.",
+        "A. Stdin `/dev/null` redirection works in bash but is silently ignored in the POSIX sh shell that most CI runners use, which handles null device redirection differently.",
+        "B. The correct approach is to use `/dev/zero` as the stdin source, which provides an infinite stream of null bytes that properly suppresses all interactive prompts.",
+        "C. The stdin redirection is functioning correctly and the hang must be caused by a separate configuration issue unrelated to Claude Code's input handling.",
         "D. Claude Code's interactive mode is triggered by TTY detection, not stdin availability; the `-p` flag is required to enable print/headless mode."
       ],
       "correctAnswer": "D"
@@ -391,18 +390,18 @@
       "question": "Your CI pipeline runs the Claude Code CLI (with --print mode) using CLAUDE.md to provide project context for code reviews, and developers generally find the reviews insightful. However, they report that integrating findings into your workflow is difficult—Claude produces narrative paragraphs that must be manually copied into PR comments. Your team wants to automatically post each finding as a separate inline PR comment at the relevant code location, which requires structured data with file path, line number, severity, and suggested fix. What's the most effective approach?",
       "answers": [
         "A. Use CLI flags `--output-format json` and `--json-schema` to enforce structured findings, then parse output to post inline comments via the GitHub API.",
-        "B. Include explicit formatting instructions in your review prompt requiring each finding to follow a parseable template like `[FILE:path] [LINE:n] [SEVERITY:level] ...`.",
-        "C. Keep the narrative review format but add a summarization step that uses Claude to generate a structured JSON summary of the findings.",
-        "D. Add a 'Review Output Format' section to CLAUDE.md with examples showing structured findings, so Claude learns the expected format from project context."
+        "B. Include explicit per-finding formatting instructions in your review prompt requiring each finding to follow a structured template with file path, line number, severity, and suggested fix fields.",
+        "C. Keep the narrative review format but add a secondary processing call that converts the prose output into structured JSON with all required fields before posting to GitHub.",
+        "D. Add a dedicated 'Review Output Format' section to CLAUDE.md with fully annotated examples of correctly structured findings so Claude infers the expected schema from project context."
       ],
       "correctAnswer": "A"
     },
     {
       "question": "A Claude Code CLI workflow generates deployment risk summaries as prose. Your SRE team wants to pipe these into a dashboard that requires structured JSON with fields: `service`, `risk_level`, `reason`, `recommended_action`. What is the correct approach?",
       "answers": [
-        "A. Add 'respond only in JSON' to the prompt and parse the output with a lenient JSON parser.",
-        "B. Post-process the prose output through a second Claude call that extracts fields.",
-        "C. Update CLAUDE.md with an example JSON object so Claude learns the expected format.",
+        "A. Add 'respond only in JSON with fields: service, risk_level, reason, recommended_action' to the prompt and parse the output with a lenient JSON parser that strips surrounding prose.",
+        "B. Route the prose output through a secondary Claude call that extracts the required fields and returns them in the JSON format the SRE dashboard expects.",
+        "C. Add a representative example JSON response to CLAUDE.md so Claude infers the expected output format from project-level context rather than prompt instructions.",
         "D. Pass a JSON schema via `--json-schema` and set `--output-format json` to enforce structured output at the CLI level."
       ],
       "correctAnswer": "D"
@@ -410,9 +409,9 @@
     {
       "question": "A developer adds detailed prompt instructions: 'Respond only in JSON. Each finding must include file, line, severity, and fix keys.' Output is JSON-shaped sometimes but still occasionally includes prose introductions or markdown fences. What is the more reliable solution?",
       "answers": [
-        "A. Add stricter instructions: 'Do not include any text before or after the JSON object.'",
-        "B. Switch to the API directly where JSON mode is more reliably enforced.",
-        "C. Use a JSON validator and retry the request on every response until valid JSON is returned.",
+        "A. Add stricter prohibitive instructions to the prompt — 'Do not include any prose, markdown, or text outside the JSON structure' — to prevent extraneous formatting.",
+        "B. Migrate the implementation to the direct API endpoint where JSON output mode is enforced at the request level and behaves more reliably than CLI instructions.",
+        "C. Build a validation wrapper that parses each response and automatically re-invokes the command whenever the output contains non-JSON content, retrying until clean.",
         "D. Use `--output-format json` and `--json-schema` flags, which enforce structure at the CLI level rather than relying on instruction-following."
       ],
       "correctAnswer": "D"
@@ -420,10 +419,10 @@
     {
       "question": "When you need Claude Code CLI output to conform to a specific machine-readable schema for downstream processing, what is the most reliable enforcement mechanism compared to prompt instructions?",
       "answers": [
-        "A. Add a system prompt that includes the full JSON schema as a formatting example.",
+        "A. Add a fully specified JSON schema directly to the system prompt as a formatting reference so the model can replicate the expected output structure.",
         "B. Use CLI-level schema enforcement flags (`--output-format`, `--json-schema`) that constrain the output format structurally.",
-        "C. Use retry logic with output validation until the model produces conforming output.",
-        "D. Fine-tune the model on examples of the desired output format."
+        "C. Build retry logic with output validation that re-invokes the command automatically whenever the model produces non-conforming output.",
+        "D. Collect labeled examples of the desired structured output and fine-tune the model specifically for JSON generation in code review contexts."
       ],
       "correctAnswer": "B"
     }
@@ -433,9 +432,9 @@
     {
       "question": "Your automated review generates test case suggestions for each PR. When reviewing a PR that adds course completion tracking, Claude suggests 10 test cases but developer feedback indicates 6 duplicate scenarios already covered in the existing test suite. What change would most effectively reduce duplicate suggestions?",
       "answers": [
-        "A. Implement post-processing that filters suggestions whose descriptions match keywords from existing test names.",
-        "B. Add instructions directing Claude to focus exclusively on edge cases and error conditions rather than successful paths.",
-        "C. Reduce requested suggestions from 10 to 5, assuming Claude will prioritize the most valuable cases first.",
+        "A. Add a post-processing filter that suppresses suggestions whose descriptions contain keywords already present in the names of existing test functions.",
+        "B. Add instructions directing Claude to generate only edge-case failure scenarios, on the assumption that all standard happy-path coverage already exists in the test suite.",
+        "C. Reduce requested suggestions from 10 to 5, assuming Claude will naturally surface only the most valuable and non-redundant test cases when given fewer slots.",
         "D. Include the existing test file in the context so Claude can identify what scenarios are already covered."
       ],
       "correctAnswer": "D"
@@ -443,29 +442,29 @@
     {
       "question": "An AI-powered feature specification tool generates requirements for a new module but 40% of the suggestions duplicate requirements already documented in the existing spec. The prompt says 'generate comprehensive requirements.' What is the most direct fix?",
       "answers": [
-        "A. Add 'avoid duplicating requirements' to the prompt instructions.",
-        "B. Run a deduplication pass on the output comparing it to existing requirements.",
+        "A. Add the instruction 'avoid duplicating requirements already listed' to the prompt and have Claude review its output for overlap before finalizing the suggestions.",
+        "B. Run a post-generation deduplication pass that compares each newly generated requirement against the existing specification and removes any semantic matches.",
         "C. Include the existing specification document in the prompt context so the model can see what already exists.",
-        "D. Ask the model to generate only 'novel' requirements not covered by typical implementations."
+        "D. Ask the model to generate only 'novel' requirements not typically found in standard implementations, to reduce overlap with the existing documented specification."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "To fix duplicate test suggestions, a developer adds the instruction 'only suggest test cases that are not already covered in the existing test suite.' Duplicates persist. Why didn't this instruction work?",
       "answers": [
-        "A. The model ignores instructions about what not to generate.",
+        "A. The model systematically disregards negative exclusion constraints during generation, making all instruction-based approaches to preventing duplication ineffective.",
         "B. Without the actual test file in context, the model has no way to know what tests already exist—the instruction is unfulfillable.",
-        "C. The instruction contradicts the model's training to be comprehensive.",
-        "D. The instruction would have worked if phrased as 'do not repeat any existing tests.'"
+        "C. The instruction fundamentally conflicts with the model's training objective to produce comprehensive outputs, so it is systematically overridden during generation.",
+        "D. The instruction would have been more effective if phrased positively as 'only generate test cases not present in the existing test suite.'"
       ],
       "correctAnswer": "B"
     },
     {
       "question": "A code generation assistant consistently produces suggestions that duplicate existing implementations because the existing code is not included in the prompt. What is the most direct fix?",
       "answers": [
-        "A. Add explicit instructions to avoid generating common implementations.",
-        "B. Ask the model to explain its choices so you can filter duplicates manually.",
-        "C. Reduce the number of suggestions requested to decrease the probability of overlap.",
+        "A. Add explicit instructions directing Claude to avoid common standard-library implementations and focus only on project-specific logic not present in typical codebases.",
+        "B. Ask the model to explain and justify each suggestion individually, allowing you to review and filter out recommendations that duplicate existing code.",
+        "C. Reduce the total number of suggestions requested per prompt, on the assumption that a smaller target output reduces overlap probability.",
         "D. Include the existing codebase (or the relevant portion of it) as context before generating suggestions."
       ],
       "correctAnswer": "D"
@@ -529,10 +528,10 @@
     {
       "question": "An LLM generates a data migration script and then reviews its own output for errors. The review passes it as correct. A human engineer later finds a data type mismatch that the generator 'considered but ruled out' in its chain of thought. What architectural change would catch such issues?",
       "answers": [
-        "A. Use chain-of-thought prompting to make the generator explain its reasoning more explicitly.",
-        "B. Add a step where the generator lists potential issues before finalizing the script.",
+        "A. Apply chain-of-thought prompting to require the generator to explicitly document its design decisions and reasoning before producing the final output.",
+        "B. Add a pre-finalization step where the generator enumerates all potential issues with its own output and addresses each one before submitting.",
         "C. Pass the script to a second LLM instance that has no access to the first instance's reasoning trace.",
-        "D. Increase the generation temperature to produce more diverse outputs for comparison."
+        "D. Increase the generation temperature to introduce output variance, enabling the team to compare multiple diverse candidate scripts."
       ],
       "correctAnswer": "C"
     },
@@ -540,18 +539,18 @@
       "question": "A team adds the instruction 'After generating code, critically review it for edge cases you may have missed.' Issues that were considered and dismissed during generation still pass the self-review. Why?",
       "answers": [
         "A. The self-review step executes in the same context as generation, inheriting the same reasoning biases and prior commitments.",
-        "B. The instruction is grammatically ambiguous and should be split into two separate sentences.",
-        "C. The model lacks access to test results, which are needed to identify edge case failures.",
-        "D. Self-review only works with chain-of-thought enabled; the team should add 'think step by step.'"
+        "B. The self-review instruction is grammatically ambiguous and must be restructured as two clearly separated sentences to take effect.",
+        "C. The model lacks access to test execution results at review time, which are required to identify which edge cases actually fail in the generated code.",
+        "D. Self-critique only produces reliable results when chain-of-thought reasoning is explicitly enabled; the team should prepend 'think step by step' to the instruction."
       ],
       "correctAnswer": "A"
     },
     {
       "question": "Why is a second independent LLM instance more effective than self-review for catching subtle errors in generated content?",
       "answers": [
-        "A. Two instances have double the context window, allowing more thorough analysis.",
-        "B. The second instance runs on a fresh cache, making it statistically faster.",
-        "C. Two instances with different random seeds produce more diverse outputs.",
+        "A. Running two instances effectively doubles the total context window available, enabling more thorough analysis than a single instance can produce alone.",
+        "B. The second instance accesses a freshly populated cache from the start, which reduces processing time and produces statistically faster review results.",
+        "C. Two instances initialized with different random seeds produce more diverse outputs, increasing the probability that at least one identifies the critical issue.",
         "D. An independent instance hasn't committed to the generator's reasoning, so it can identify flaws the generator rationalized away."
       ],
       "correctAnswer": "D"
@@ -582,20 +581,20 @@
     {
       "question": "A developer argues: 'We should keep both workflows real-time because the 50% batch savings don't justify the added complexity of polling and async handling.' What is the flaw in this reasoning?",
       "answers": [
-        "A. The developer is correct — polling complexity always outweighs cost savings.",
+        "A. The developer is entirely correct — the operational complexity of implementing reliable polling and async handling always outweighs any cost savings the batch discount provides.",
         "B. The developer ignores that one workflow already has inherent overnight latency tolerance, making added polling complexity minimal and cost savings significant for that task.",
-        "C. Batch processing doesn't require polling — results are pushed via webhooks automatically.",
-        "D. The developer's argument is sound; cost-benefit analysis should be done per organization."
+        "C. Batch processing eliminates the need for polling entirely because completed results are automatically pushed via webhook callbacks rather than requiring status checks.",
+        "D. The developer's cost-benefit argument is technically sound; the decision to migrate depends entirely on each organization's specific infrastructure and tolerance for complexity."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "When evaluating a proposal to migrate LLM API calls to batch processing for cost savings, what single factor determines whether the migration is appropriate for a given workflow?",
       "answers": [
-        "A. The volume of requests — high-volume workflows benefit more from batch discounts.",
-        "B. The size of prompts — longer prompts are better candidates for batch processing.",
+        "A. The total request volume of the workflow, since high-frequency tasks generate the greatest absolute token savings from the batch processing discount.",
+        "B. The average prompt length submitted, since longer prompts save more tokens per call and yield higher absolute cost reductions at scale.",
         "C. Whether the workflow has a hard real-time requirement that would be violated by batch latency.",
-        "D. The model version — only newer models support efficient batch processing."
+        "D. The target model version, since only specific model releases include the optimizations required to make batch processing efficient and reliable."
       ],
       "correctAnswer": "C"
     }
@@ -615,19 +614,19 @@
     {
       "question": "An automated PR labeling system has four label types: 'breaking change' (5% FP), 'security risk' (10% FP), 'cosmetic only' (60% FP), 'performance impact' (55% FP). Developers ignore all labels because the inaccurate ones undermine credibility. What is the best recovery strategy?",
       "answers": [
-        "A. Reduce the confidence threshold for all label types uniformly.",
+        "A. Lower the internal confidence threshold uniformly across all four label types to reduce the overall false positive rate and produce fewer but more reliable predictions.",
         "B. Disable 'cosmetic only' and 'performance impact' labels until accuracy improves; continue using 'breaking change' and 'security risk.'",
-        "C. Add more context to the prompt to help the model distinguish all label types better.",
-        "D. Show all labels but add '(low confidence)' markers on the inaccurate types."
+        "C. Enrich the prompt with additional context and examples for each label type to improve the model's discriminative ability between closely related categories.",
+        "D. Display all labels but mark predictions from the two underperforming types with a visible '(low confidence)' indicator for developer awareness."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "To address low developer trust from high false positive rates in style and documentation categories, a team displays a confidence score with every finding so developers can decide what to investigate. Six weeks later, developer engagement with all categories has dropped further. Why did the confidence score approach fail?",
       "answers": [
-        "A. The confidence scores were miscalibrated and didn't correlate with actual accuracy.",
-        "B. The confidence score UI was confusing and developers didn't understand how to interpret it.",
-        "C. The approach would have worked if confidence scores were shown only for high-FP categories.",
+        "A. The model's confidence scores are systematically miscalibrated and do not correlate reliably with whether individual findings in those categories are actually accurate.",
+        "B. The confidence score display was too complex for developers to interpret quickly during triage, slowing down individual finding evaluations rather than accelerating them.",
+        "C. The approach would have been effective if confidence scores had been shown selectively, only for findings from the two high false-positive categories.",
         "D. Displaying confidence scores alongside inaccurate categories still requires developers to process findings from those categories, maintaining triage burden and distrust."
       ],
       "correctAnswer": "D"

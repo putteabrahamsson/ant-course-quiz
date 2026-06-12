@@ -4,7 +4,7 @@
       "question": "You've described your desired function behavior to Claude Code in detail, but the generated code keeps missing edge cases. What's the most effective next step?",
       "answers": [
         "A. Provide 2-3 concrete input-output examples showing the expected transformation for representative API responses.",
-        "B. Rewrite your prose description with more technical vocabulary and domain-specific terminology.",
+        "B. Rewrite your prose description with more technical vocabulary and domain-specific terminology to reduce ambiguity.",
         "C. Ask Claude to generate unit tests first and then derive the implementation from those tests.",
         "D. Break the prompt into smaller sub-tasks and ask Claude to solve each one independently."
       ],
@@ -13,28 +13,28 @@
     {
       "question": "A developer is trying to get Claude Code to correctly transform API payloads, but prose descriptions of the transformation keep producing incorrect results. Which approach is most likely to resolve the problem?",
       "answers": [
-        "A. Switch to a more detailed natural language description, including the business logic behind the transformation.",
-        "B. Ask Claude to read the API documentation directly instead of relying on a description.",
+        "A. Switch to a more detailed natural language description that includes the underlying business logic and intent behind each transformation step.",
+        "B. Ask Claude to read the API documentation directly instead of relying on a human-authored description of the format.",
         "C. Provide concrete before-and-after JSON examples that illustrate the expected transformation for typical and edge-case inputs.",
-        "D. Request that Claude generates the transformation as a pure function without side effects."
+        "D. Request that Claude generate the transformation as a pure function without side effects or external dependencies."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "Which of the following is LEAST effective when iterative code generation is failing to meet expectations?",
       "answers": [
-        "A. Providing concrete input-output examples that demonstrate the required behavior.",
-        "B. Asking Claude to reconsider its approach by posing the question as a thought experiment.",
-        "C. Narrowing the prompt scope to focus on one specific transformation at a time.",
-        "D. Showing expected outputs for edge cases alongside typical cases."
+        "A. Providing concrete input-output examples that demonstrate the required behavior for typical and edge cases.",
+        "B. Asking Claude to reconsider its approach by posing the problem as a thought experiment without additional context.",
+        "C. Narrowing the prompt scope to focus on one specific transformation or behavior at a time.",
+        "D. Showing expected outputs for edge cases alongside typical cases to cover the full range."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "In iterative code generation, when abstract descriptions consistently fail to produce the correct output, what underlying principle explains why concrete examples outperform prose?",
       "answers": [
-        "A. Examples reduce token usage, which increases the model's effective working memory.",
-        "B. Prose descriptions are parsed as natural language and thus inherently ambiguous to code generators.",
+        "A. Examples reduce token usage, which increases the model's effective working memory during generation.",
+        "B. Prose descriptions are parsed as natural language and thus inherently ambiguous to code generation models.",
         "C. Concrete input-output examples eliminate ambiguity by anchoring the expected behavior to observable data rather than interpretation.",
         "D. Models are fine-tuned exclusively on code and cannot process mixed natural language and code prompts effectively."
       ],
@@ -66,19 +66,19 @@
     {
       "question": "A developer added `scope: isolated` to their skill frontmatter hoping to prevent context bleed into the main conversation, but the problem persists. What is wrong with their approach?",
       "answers": [
-        "A. They should have used allowed-tools: [] instead to prevent output from being appended.",
+        "A. They should have used allowed-tools: [] instead, which prevents skill output from being appended to the session.",
         "B. They should have used context: fork, because scope: isolated is not a valid frontmatter field for context isolation.",
-        "C. They should have used output: hidden to suppress the skill's conversation output.",
-        "D. The skill needs to be moved to a separate directory to achieve context isolation."
+        "C. They should have used output: hidden to suppress the skill's verbose conversation output from view.",
+        "D. The skill needs to be moved to a separate directory structure to achieve the required context isolation."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "What is the architectural purpose of the `context: fork` option in skill frontmatter?",
       "answers": [
-        "A. It clones the current conversation state into a read-only snapshot for reference during skill execution.",
-        "B. It restricts which tools the skill may invoke, creating a capability sandbox.",
-        "C. It schedules the skill to run asynchronously in the background without blocking the main thread.",
+        "A. It clones the current conversation state into a read-only snapshot, preserving a stable reference that the skill can consult at any point during its execution without modifying it.",
+        "B. It restricts which tools the skill may invoke, creating a scoped sandbox where only capabilities listed in allowed-tools are permitted to execute during the skill run.",
+        "C. It schedules the skill to run asynchronously in a background thread, deferring its execution steps until the main conversation turn has fully completed and acknowledged.",
         "D. It runs the skill in an isolated execution context so its intermediate steps and outputs do not propagate back into the main conversation."
       ],
       "correctAnswer": "D"
@@ -109,20 +109,20 @@
     {
       "question": "A developer stores team slash commands in `~/.claude/commands/` and commits a reference to that path in the README. What is wrong with this approach?",
       "answers": [
-        "A. The ~/.claude/commands/ directory does not support markdown files.",
+        "A. The ~/.claude/commands/ directory does not support markdown files as slash command definitions.",
         "B. User-level directories are machine-specific and not shared when teammates clone the repository, so the commands will not be available to other developers.",
-        "C. Slash commands stored outside the project cannot reference project files.",
-        "D. The README reference will cause Claude Code to look in the wrong directory at startup."
+        "C. Slash commands stored outside the project directory cannot reference project files or access local repository context.",
+        "D. The README reference will cause Claude Code to look in the wrong directory at startup, silently failing to load any commands."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "What is the fundamental distinction between project-scoped and user-scoped slash command storage in Claude Code?",
       "answers": [
-        "A. Project-scoped commands support argument hints while user-scoped commands do not.",
-        "B. User-scoped commands have access to more tools than project-scoped commands.",
+        "A. Project-scoped commands support rich argument hints and full parameterization schemas, while user-scoped commands accept only positional arguments without any declared parameter types.",
+        "B. User-scoped commands are granted access to a broader default toolset than project-scoped commands, which are restricted to file-access tools unless explicitly expanded.",
         "C. Project-scoped commands reside inside the repository and are version-controlled and shared, while user-scoped commands are personal and local to each developer's machine.",
-        "D. Project-scoped commands run in isolated contexts by default, while user-scoped commands share the main context."
+        "D. Project-scoped commands run in isolated forked contexts by default to protect the shared session, while user-scoped commands always share the main conversation context directly."
       ],
       "correctAnswer": "C"
     }
@@ -132,8 +132,8 @@
     {
       "question": "Your project has a set of exemplar REST endpoints that define your API patterns. You want Claude Code to follow these patterns when generating new endpoints, but without loading them into every conversation. What is the best approach?",
       "answers": [
-        "A. Add the exemplar endpoints as inline examples in the CLAUDE.md root file so they are always available.",
-        "B. Paste the exemplar code directly into each prompt when generating new endpoints.",
+        "A. Add the exemplar endpoints as inline examples in the CLAUDE.md root file so they are always available to every conversation.",
+        "B. Paste the exemplar code directly into each individual prompt when generating new endpoints.",
         "C. Create a skill that references the exemplar endpoints and includes pattern-following instructions, invoked on-demand via slash command.",
         "D. Store the exemplar endpoints in a separate repository and link to it in your project README."
       ],
@@ -152,10 +152,10 @@
     {
       "question": "A developer adds all exemplar endpoint files to CLAUDE.md so they are loaded into every conversation. What is the main drawback of this approach compared to using a skill?",
       "answers": [
-        "A. CLAUDE.md does not support file references, so the exemplar content will not be loaded.",
-        "B. Exemplars loaded in CLAUDE.md are read-only and cannot be used as generation templates.",
+        "A. CLAUDE.md does not support file references, so the exemplar content will not actually be loaded into context.",
+        "B. Exemplars loaded in CLAUDE.md are treated as read-only references and cannot be used as active generation templates.",
         "C. Loading exemplars into every conversation wastes context on tasks where code generation is not needed, reducing effectiveness for unrelated work.",
-        "D. CLAUDE.md is only read once per session, so exemplar updates will not be reflected until the session restarts."
+        "D. CLAUDE.md is only read once per session, so exemplar updates will not be reflected until the session is fully restarted."
       ],
       "correctAnswer": "C"
     },
@@ -164,8 +164,8 @@
       "answers": [
         "A. Skills execute faster than inline instructions because they bypass the model's attention mechanism for static content.",
         "B. On-demand invocation preserves context efficiency — pattern knowledge is injected only when relevant, keeping the working context clean for unrelated tasks.",
-        "C. Exemplar files can only be read by the skill subsystem, not by direct prompt injection.",
-        "D. Always-loaded instructions are subject to rate limiting, while skills bypass this constraint."
+        "C. Exemplar files can only be read by the skill subsystem, not by direct prompt injection into the conversation.",
+        "D. Always-loaded instructions are subject to rate limiting at the API level, while skills bypass this constraint entirely."
       ],
       "correctAnswer": "B"
     }
@@ -175,9 +175,9 @@
     {
       "question": "Your team needs to share an MCP server configuration that authenticates with GitHub. You want credentials to stay out of the repository while still allowing each developer to use their own token. What is the correct approach?",
       "answers": [
-        "A. Store each developer's GitHub token directly in .mcp.json and add the file to .gitignore.",
+        "A. Store each developer's GitHub token directly in .mcp.json and add the entire file to .gitignore.",
         "B. Require developers to export their token as an environment variable and read it from a local .env file that is git-ignored.",
-        "C. Add the server to .mcp.json at the user level (~/.claude/) so tokens are never in the project.",
+        "C. Add the server to .mcp.json at the user level (~/.claude/) so tokens are stored only on personal machines.",
         "D. Add the server to a project-scoped .mcp.json with environment variable expansion (${GITHUB_TOKEN}) for authentication, and document the required environment variable in your project README."
       ],
       "correctAnswer": "D"
@@ -195,20 +195,20 @@
     {
       "question": "A developer stores their GitHub token directly in `.mcp.json` and commits the file. What is the primary security risk and what is the correct fix?",
       "answers": [
-        "A. The token can be extracted from the compiled binary — fix by using runtime encryption instead.",
+        "A. The token can be extracted from the compiled binary — fix by using runtime encryption rather than plaintext file storage.",
         "B. The token is visible to anyone with repository access — fix by using ${GITHUB_TOKEN} environment variable expansion so the actual secret is never committed.",
         "C. The token is invalidated when the file is committed — fix by regenerating a new token and storing it in a secrets manager.",
-        "D. Direct token storage causes authentication failures in CI — fix by switching to SSH key authentication."
+        "D. Direct token storage causes authentication failures in CI — fix by switching to SSH key authentication instead."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "What is the underlying principle that makes environment variable expansion in `.mcp.json` the recommended pattern for team-shared MCP server credentials?",
       "answers": [
-        "A. Environment variables are encrypted at rest by the operating system, providing stronger security than file-based storage.",
-        "B. MCP servers can only read credentials from environment variables, making this the only supported authentication method.",
+        "A. Environment variables are encrypted at rest by the operating system kernel, providing a fundamentally stronger security guarantee than any plaintext or base64-encoded file-based storage approach.",
+        "B. MCP servers can exclusively read credentials from environment variables and do not support any other authentication mechanism, making this pattern mandatory rather than merely recommended.",
         "C. It decouples the configuration structure (shared via version control) from the secret values (provided per-developer via environment), so collaboration and security are maintained simultaneously.",
-        "D. Environment variables are automatically rotated by cloud providers, eliminating the need for manual credential management."
+        "D. Cloud providers automatically rotate environment variables on a scheduled cadence, entirely eliminating the operational burden of manual credential lifecycle management for development teams."
       ],
       "correctAnswer": "C"
     }
@@ -238,20 +238,20 @@
     {
       "question": "A developer puts all project coding conventions — frontend, backend, and testing — into a single large CLAUDE.md file. They use headers to organize sections. What problem is this approach likely to cause as the project grows?",
       "answers": [
-        "A. CLAUDE.md files above a certain size are ignored by Claude Code entirely.",
+        "A. CLAUDE.md files that exceed a certain total byte threshold have their trailing content silently truncated, causing any conventions past that boundary to be fully ignored by the loading mechanism.",
         "B. Mixing all conventions into one file reduces modularity and makes it difficult to apply rules selectively, leading to all conventions being loaded even when only a subset is relevant.",
-        "C. Claude Code only reads the first 200 lines of CLAUDE.md, so later conventions will be silently ignored.",
-        "D. Headers in CLAUDE.md create parsing errors that prevent the file from being loaded correctly."
+        "C. Claude Code enforces a strict 200-line parse limit on CLAUDE.md and silently skips all conventions appearing after that boundary, regardless of how the file is structured or organized.",
+        "D. Level-two section headers in CLAUDE.md trigger a delimiter ambiguity in the rule parser, preventing the entire file from being loaded or interpreted correctly by the rule-loading runtime."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "What capability do glob patterns in `.claude/rules/` YAML frontmatter provide that a monolithic CLAUDE.md file cannot?",
       "answers": [
-        "A. Glob patterns enable real-time linting by connecting rule files to the language server protocol.",
-        "B. They allow rule files to be version-controlled independently of the main CLAUDE.md.",
+        "A. Glob patterns enable real-time linting feedback by connecting rule files directly to the IDE language server protocol, triggering automatic convention validation on all matching source files during each editing session.",
+        "B. They allow each rule file to be version-controlled on an independent history branch and reviewed in isolation, fully decoupling its commit log from the main CLAUDE.md change history.",
         "C. Glob patterns allow conventions to be activated conditionally based on which files are in scope, enabling different rules for different parts of the codebase without loading all rules simultaneously.",
-        "D. Glob patterns grant access to external rule registries that cannot be referenced from CLAUDE.md."
+        "D. Glob patterns provide access to external rule registry endpoints that serve shared organizational conventions, which cannot be directly referenced, imported, or inlined from any local CLAUDE.md file."
       ],
       "correctAnswer": "C"
     }
@@ -261,7 +261,7 @@
     {
       "question": "You need to restructure a large legacy codebase by moving shared utilities into a new package. The change affects dozens of files and has unclear dependency boundaries. What is the best first step in Claude Code?",
       "answers": [
-        "A. Start implementing changes file by file, committing frequently to keep changes reversible.",
+        "A. Start implementing changes file by file, committing frequently to keep all changes small and reversible.",
         "B. Enter plan mode to explore the codebase, understand dependencies, and design an implementation approach before making changes.",
         "C. Create a detailed task list in a markdown file and ask Claude to execute each task sequentially.",
         "D. Use the Explore subagent to generate a full implementation in one pass before reviewing."
@@ -272,8 +272,8 @@
       "question": "A developer is about to have Claude Code perform a wide-ranging API redesign across 50+ files. Dependencies between modules are not fully documented. Which mode should they enter before touching any code?",
       "answers": [
         "A. Plan mode, so Claude can explore the codebase and map dependencies before designing the approach.",
-        "B. Sandbox mode, to prevent accidental writes while exploring.",
-        "C. Interactive mode with auto-apply disabled, to review each change as it happens.",
+        "B. Sandbox mode, to prevent accidental writes while exploring the dependency graph.",
+        "C. Interactive mode with auto-apply disabled, to review each individual change as it happens.",
         "D. Debug mode, to trace all file reads during the exploration phase."
       ],
       "correctAnswer": "A"
@@ -281,20 +281,20 @@
     {
       "question": "A developer skips plan mode and asks Claude Code to immediately start refactoring a complex module with many cross-package dependencies. What is the most likely negative outcome?",
       "answers": [
-        "A. Claude Code will refuse to make changes to files it has not previously read in the session.",
+        "A. Claude Code will refuse to make changes to files it has not previously read in the current session.",
         "B. Without exploring dependencies first, Claude may make changes that break unexamined call sites, requiring expensive rollback and re-implementation.",
         "C. Skipping plan mode disables Claude's ability to use file-writing tools, causing all changes to be printed as diffs instead.",
-        "D. Claude will overwrite the CLAUDE.md file with a generated plan, losing existing project instructions."
+        "D. Claude will overwrite the CLAUDE.md file with a generated plan, losing all existing project instructions."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "What is the fundamental value of plan mode for large-scope, complex code restructuring tasks?",
       "answers": [
-        "A. Plan mode uses a separate, larger model with more parameters, making it more accurate for architectural decisions.",
-        "B. It forces the model to commit to a specific implementation strategy upfront, preventing scope creep during execution.",
+        "A. Plan mode routes the request to a dedicated architectural model with a larger parameter count, providing meaningfully more accurate analysis for complex structural decisions than the standard model.",
+        "B. It commits the model irrevocably to a single implementation strategy before execution begins, which prevents costly mid-task scope changes from introducing inconsistency into the refactoring.",
         "C. Planning before acting allows the model to develop a coherent understanding of the system's structure and dependencies, reducing the risk of cascading errors from changes made without full context.",
-        "D. Plan mode automatically generates rollback scripts for every file it intends to modify, providing a safety net."
+        "D. Plan mode automatically generates a reversible rollback shell script for every file it intends to modify, creating a full restore point before any destructive changes are applied."
       ],
       "correctAnswer": "C"
     }
@@ -324,20 +324,20 @@
     {
       "question": "A developer stores all project instructions in a single 800-line CLAUDE.md file. When reviewing a pull request, a colleague cannot easily tell which rules are relevant to the changed files. What structural change would most improve this?",
       "answers": [
-        "A. Convert the CLAUDE.md into a JSON schema file for machine-readable rule parsing.",
+        "A. Convert the CLAUDE.md into a structured JSON schema file so rules can be parsed programmatically and queried by file path during automated review tooling.",
         "B. Split the monolithic file into separate topic-focused files in .claude/rules/, optionally with glob frontmatter to scope them to relevant file patterns.",
-        "C. Replace CLAUDE.md with inline comments in each source file describing the applicable rules.",
-        "D. Add a table of contents to the beginning of CLAUDE.md with anchor links to each rule section."
+        "C. Replace the CLAUDE.md entirely with terse inline comments placed inside each source file, describing the applicable convention at the exact location where it applies.",
+        "D. Add a comprehensive table of contents with deeply nested anchor links at the beginning of CLAUDE.md so reviewers can quickly navigate to the relevant section."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "What organizational principle does the `.claude/rules/` multi-file pattern embody, and why does it improve long-term maintainability?",
       "answers": [
-        "A. It applies the DRY principle by centralizing all rule logic in one location, preventing duplication across the project.",
+        "A. It applies the DRY principle by centralizing all rule logic into a single authoritative directory, ensuring that no convention is duplicated across different parts of the project's configuration.",
         "B. Separate files per topic enforce separation of concerns — each file has a single responsibility, making rules easier to locate, update, test independently, and review in isolation.",
-        "C. The multi-file pattern enables parallel loading by the Claude Code runtime, reducing startup latency for large instruction sets.",
-        "D. It mirrors the structure of the source tree, ensuring that rule files are co-located with the code they govern."
+        "C. The multi-file pattern enables the Claude Code runtime to load rule files in parallel across worker threads, measurably reducing session startup latency when large instruction sets are present.",
+        "D. It mirrors the directory hierarchy of the source tree exactly, co-locating each rule file with the specific module or package whose code it governs for maximum discoverability."
       ],
       "correctAnswer": "B"
     }
@@ -357,7 +357,7 @@
     {
       "question": "A developer wants a personal `/deploy-preview` skill with extra safety checks, while the team's shared version skips those checks for speed. Where and how should the personal version be stored?",
       "answers": [
-        "A. In ~/.claude/skills/ under the same name /deploy-preview, overriding the team skill.",
+        "A. In ~/.claude/skills/ under the same name /deploy-preview, which overrides the team skill for this developer.",
         "B. In ~/.claude/skills/ under a distinct name like /safe-deploy, so both skills coexist without conflict.",
         "C. In the project's .claude/skills/ with a username prefix in the filename.",
         "D. In a personal branch of the repository, loaded via a profile-specific CLAUDE.md."
@@ -367,20 +367,20 @@
     {
       "question": "A developer creates a personal skill in `~/.claude/skills/commit.md`, naming it `/commit` — the same as the project skill in `.claude/skills/commit.md`. What problem will this cause?",
       "answers": [
-        "A. The user-level skill will be silently ignored because project-level skills always take precedence.",
-        "B. Both skills will execute sequentially when /commit is invoked, causing duplicate or conflicting operations.",
+        "A. The user-level skill will be silently and permanently ignored because project-level skills always take absolute precedence in Claude Code's skill resolution hierarchy.",
+        "B. Both skills will execute sequentially in source-order when /commit is invoked, causing duplicate git operations and conflicting commit message formatting in the same session.",
         "C. Naming collision means one skill will shadow the other, making the shadowed skill unavailable — the developer cannot easily use both versions depending on context.",
-        "D. Claude Code will throw a fatal error and refuse to load any skills until the naming conflict is resolved."
+        "D. Claude Code will surface a fatal skill-registry conflict error at session startup and refuse to load any skills at all until the naming collision is manually resolved."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "What principle guides the decision to give a personal skill override a different name rather than the same name as the project skill?",
       "answers": [
-        "A. Different names are required because user-level and project-level skill directories use incompatible file formats.",
+        "A. Different names are strictly required because user-level and project-level skill directories use incompatible markdown dialects, making any file with identical names across both directories fail to parse correctly.",
         "B. Using a different name preserves both the shared and personal versions as independently invocable commands, giving the developer explicit control over which behavior to invoke without removing the team version.",
-        "C. Skill names must be globally unique across all Claude Code installations to prevent registry conflicts.",
-        "D. A different name triggers a lower permission level, restricting the personal skill to read-only tool access."
+        "C. Skill names must be globally unique across every Claude Code installation worldwide to prevent conflicts in the centralized command registry that Anthropic maintains for all registered skill identifiers.",
+        "D. Using a different name automatically triggers a reduced permission tier within Claude Code, scoping the personal skill strictly to read-only file access and preventing any accidental writes to shared project files."
       ],
       "correctAnswer": "B"
     }
@@ -390,10 +390,10 @@
     {
       "question": "You're setting up Claude Code instructions for a team. Some conventions apply universally (code style, language version), while others are complex multi-step workflows (running a PR review, deploying to staging). How should these be organized?",
       "answers": [
-        "A. Put everything in CLAUDE.md, separating universal rules from workflows with headings.",
-        "B. Create Skills for universal conventions and keep workflows as plain instructions in CLAUDE.md.",
+        "A. Put everything into a single CLAUDE.md, using level-2 headings to visually separate universal rules from workflow instructions so all content loads together.",
+        "B. Create dedicated Skills for each universal convention and keep complex workflows as plain prose instructions inside the main CLAUDE.md for ambient availability.",
         "C. Keep universal standards in CLAUDE.md and create Skills for task-specific workflows (PR reviews, deployments, migrations) with trigger keywords.",
-        "D. Store universal conventions in .claude/rules/ and complex workflows in a wiki outside the repository."
+        "D. Store universal conventions in .claude/rules/ glob-scoped files and maintain complex workflows in a team wiki hosted entirely outside the version-controlled repository."
       ],
       "correctAnswer": "C"
     },
@@ -410,20 +410,20 @@
     {
       "question": "A team stores all instructions — from variable naming conventions to complete deployment runbooks — in a single long CLAUDE.md. What is the main problem with this approach?",
       "answers": [
-        "A. CLAUDE.md cannot reference external files, so deployment runbooks requiring dynamic data cannot be expressed.",
+        "A. CLAUDE.md cannot reference or include external files, so deployment runbooks that depend on dynamic environment-specific data or templated variables simply cannot be expressed within it.",
         "B. Mixing always-applicable standards with complex task workflows increases cognitive load and context consumption, and workflows are harder to maintain and trigger precisely when compared to dedicated Skills.",
-        "C. CLAUDE.md has a character limit that is easily exceeded when runbooks are included.",
-        "D. Deployment runbooks in CLAUDE.md will execute automatically every session, causing unintended deployments."
+        "C. CLAUDE.md enforces a strict character limit that is routinely exceeded once full deployment runbooks are appended, causing the file to fail validation on load.",
+        "D. Deployment runbooks embedded in CLAUDE.md are treated as executable instructions and will automatically trigger on every session start, causing unintended deployment operations."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "What is the underlying design principle that distinguishes what belongs in CLAUDE.md versus what belongs in a Skill?",
       "answers": [
-        "A. CLAUDE.md governs security permissions; Skills govern functional behavior — they serve different subsystems of Claude Code.",
-        "B. CLAUDE.md is for static reference data; Skills are for dynamic, tool-using workflows that modify files or call APIs.",
+        "A. CLAUDE.md is exclusively for declaring security permission boundaries and tool access policies, while Skills govern the functional step-by-step behavioral logic of every operation.",
+        "B. CLAUDE.md is intended only for static reference data like glossaries and schema docs, while Skills are for any dynamic behavior that involves invoking tools, modifying files, or calling external APIs.",
         "C. CLAUDE.md holds ambient, always-relevant context that should shape every interaction, while Skills encapsulate specific, on-demand procedural workflows that only need to be loaded when explicitly triggered.",
-        "D. CLAUDE.md is loaded once per project; Skills are reloaded on every invocation, making Skills better suited for frequently changing instructions."
+        "D. CLAUDE.md is parsed and cached once at project initialization and never reloaded, so Skills are preferred for any instructions that change frequently across different sessions or teammates."
       ],
       "correctAnswer": "C"
     }
@@ -433,9 +433,9 @@
     {
       "question": "New developers joining your team report that Claude Code doesn't follow the agreed API error-handling guideline. Senior developers who wrote the guideline have no issue. What is the most likely cause?",
       "answers": [
-        "A. New developers are using a different version of Claude Code that doesn't support the guideline syntax.",
-        "B. The guideline is in a .claude/rules/ file with a glob that excludes the new developers' working directories.",
-        "C. The guideline is written in a language the model doesn't support, causing it to be silently skipped.",
+        "A. New developers have installed a different minor version of Claude Code that parses the guideline syntax differently, treating the instructions as unrecognized metadata and silently ignoring them.",
+        "B. The guideline is in a .claude/rules/ file with a glob pattern that coincidentally excludes the file paths new developers typically work in.",
+        "C. The guideline is authored in a non-English natural language that the model consistently fails to parse, causing it to silently skip the entire instruction block.",
         "D. The guideline exists in the original developers' ~/.claude/CLAUDE.md files (user-level) instead of the project's .claude/CLAUDE.md, so new team members don't receive it."
       ],
       "correctAnswer": "D"
@@ -443,10 +443,10 @@
     {
       "question": "After a code review, a team discovers that Claude Code follows certain conventions only for the two original authors but not for the six other contributors. The instructions are not in the repository. What is the fix?",
       "answers": [
-        "A. Ask all contributors to manually copy the instructions from the original authors' machines.",
+        "A. Ask all contributors to manually copy the instruction files from the original authors' local machines, then sync them periodically whenever the instructions are updated.",
         "B. Move the instructions from the original authors' user-level ~/.claude/CLAUDE.md into the project's .claude/CLAUDE.md so they are version-controlled and shared.",
-        "C. Re-train the model with a fine-tuning dataset that includes the desired conventions.",
-        "D. Add the instructions to the CI pipeline so they are enforced during automated checks instead."
+        "C. Submit the desired conventions as a fine-tuning dataset to Anthropic and re-train the model so the behavior is baked into its weights rather than loaded at runtime.",
+        "D. Remove the instructions from Claude Code's context entirely and instead enforce the conventions exclusively through automated CI linting checks on every pull request."
       ],
       "correctAnswer": "B"
     },
@@ -454,19 +454,19 @@
       "question": "The team's Claude Code guidelines are stored in `.claude/CLAUDE.md` in the project repository, but half the team reports that Claude Code doesn't follow them. What is the most likely cause of this inconsistency?",
       "answers": [
         "A. The .claude/CLAUDE.md file is stored correctly in the project — inconsistency is likely caused by teammates overriding it with conflicting user-level ~/.claude/CLAUDE.md files on their machines.",
-        "B. The .claude/CLAUDE.md file must be placed at the repository root as CLAUDE.md, not inside a subdirectory.",
-        "C. The guidelines use markdown syntax that some Claude Code versions parse differently, causing selective enforcement.",
-        "D. Claude Code only reads .claude/CLAUDE.md on the first run per project; subsequent sessions use a cached version."
+        "B. The .claude/CLAUDE.md file must be placed at the repository root with the exact name CLAUDE.md, not nested inside a subdirectory like .claude/, for Claude Code to discover it.",
+        "C. The guidelines use a mix of markdown heading levels and list syntax that different installed minor versions of Claude Code interpret inconsistently, causing selective enforcement per machine.",
+        "D. Claude Code reads .claude/CLAUDE.md only during the first session initialization per project directory and caches the parsed result, so changes to the file are ignored in subsequent sessions."
       ],
       "correctAnswer": "A"
     },
     {
       "question": "What is the fundamental scoping rule that explains why user-level `~/.claude/CLAUDE.md` instructions do not automatically apply to all team members in a shared project?",
       "answers": [
-        "A. User-level files are encrypted with a per-user key and cannot be read by other developers' Claude Code instances.",
+        "A. User-level files are encrypted at rest using a per-user cryptographic key derived from the machine's hardware identity, making them technically unreadable by any other developer's Claude Code instance.",
         "B. User-level configuration is scoped to the individual developer's machine and session — it is not version-controlled or shared. Only project-level files committed to the repository are available to all team members.",
-        "C. User-level CLAUDE.md files are loaded after project-level files and always override them, so they cannot extend shared instructions.",
-        "D. User-level files are limited to tool permission settings and cannot contain behavioral instructions for the model."
+        "C. User-level CLAUDE.md files are loaded in a second pass after project-level files and unconditionally override every matching instruction, meaning they can only narrow — never extend — the shared project instructions.",
+        "D. User-level files are parsed by a restricted loader that only recognizes tool permission declarations and silently discards any behavioral instruction or prose guideline they contain."
       ],
       "correctAnswer": "B"
     }
@@ -476,10 +476,10 @@
     {
       "question": "Your workflow has three phases: Phase 1 discovers all affected files (verbose output), Phase 2 generates a refactoring plan, Phase 3 applies changes. How should you handle Phase 1 to avoid polluting context for Phases 2 and 3?",
       "answers": [
-        "A. Run Phase 1 in a separate terminal session and manually paste the summary into the main conversation.",
-        "B. Ask Claude to suppress output during Phase 1 and only report the final list of files.",
+        "A. Run Phase 1 in a completely separate terminal session and manually transcribe the relevant parts of its output into the main conversation as a clean summary.",
+        "B. Ask Claude to suppress all intermediate output during Phase 1 execution and only surface a concise final list of affected files as the phase's sole visible result.",
         "C. Use the Explore subagent for Phase 1 to isolate verbose output and return a summary, then continue Phases 2-3 in the main conversation.",
-        "D. Run all three phases in one prompt to allow Claude to internally manage the context between phases."
+        "D. Bundle all three phases into a single compound prompt so Claude can internally juggle the context boundaries between discovery, planning, and application automatically."
       ],
       "correctAnswer": "C"
     },
@@ -487,29 +487,29 @@
       "question": "A developer is running a three-step code audit: discovery, analysis, and reporting. The discovery phase generates hundreds of lines of file listings. How should Phase 1 be executed to keep the analysis and reporting phases clean?",
       "answers": [
         "A. Delegate Phase 1 to the Explore subagent so its verbose output is isolated, and have it return only a structured summary to the main conversation.",
-        "B. Ask Claude to store the discovery output in a temporary file and read it back when needed.",
-        "C. Use a separate Claude Code project for the discovery phase and export the results via a shared file.",
-        "D. Set output: hidden on the Phase 1 prompt to prevent its results from appearing in the conversation."
+        "B. Ask Claude to write all raw discovery output to a temporary file on disk and selectively read back only the relevant portions when the analysis phase needs specific details.",
+        "C. Open a dedicated secondary Claude Code project configured solely for the discovery phase and export its structured results to a shared JSON file the primary project then reads.",
+        "D. Set the output: hidden directive on the Phase 1 prompt so all discovery results are fully suppressed and never appended to the visible conversation history."
       ],
       "correctAnswer": "A"
     },
     {
       "question": "A developer runs all three phases of a complex analysis directly in the main conversation context without any isolation. After Phase 1's verbose output, Claude Code's quality on Phases 2 and 3 degrades noticeably. What is the most likely cause?",
       "answers": [
-        "A. Phase 1 consumed write-access tokens, leaving only read-access tokens for Phases 2 and 3.",
+        "A. Phase 1 consumed the entire write-access token budget for the session, leaving only read-access tokens for subsequent phases, which prevents Claude from generating new content.",
         "B. The verbose Phase 1 output filled a large portion of the context window, reducing the space available for the model to reason effectively about Phases 2 and 3.",
-        "C. Running multiple phases sequentially causes Claude Code to forget earlier instructions due to recency bias.",
-        "D. Verbose output from Phase 1 triggered a rate limit, causing the model to switch to a smaller, less capable version."
+        "C. Running multiple phases sequentially in one session triggers a recency-bias reset in the model, causing it to gradually deprioritize and effectively forget the earlier phase instructions.",
+        "D. Exceeding a token density threshold in Phase 1's verbose output triggered an automatic rate-limit downgrade, silently switching the session to a smaller, less capable model variant."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "What is the architectural purpose of the Explore subagent pattern in multi-phase workflows?",
       "answers": [
-        "A. The Explore subagent uses a different model with higher recall, making it better suited for file discovery tasks.",
-        "B. It allows Phase 1 to run in parallel with Phases 2 and 3, reducing total wall-clock time for complex workflows.",
+        "A. The Explore subagent is backed by a purpose-built model variant with significantly higher factual recall, making it uniquely well-suited for file discovery and codebase indexing tasks.",
+        "B. It enables Phase 1 to execute concurrently in parallel with Phase 2 and Phase 3, cutting total wall-clock time for multi-phase workflows by running all stages simultaneously.",
         "C. It isolates the verbose, exploratory output of the discovery phase from the main context, preserving context quality for subsequent reasoning-intensive phases that depend on a clean working memory.",
-        "D. The Explore subagent has elevated filesystem permissions that the main agent lacks, enabling it to traverse protected directories."
+        "D. The Explore subagent is granted elevated operating-system filesystem permissions that the main conversation agent lacks, enabling it to traverse protected and hidden directory structures."
       ],
       "correctAnswer": "C"
     }
@@ -530,29 +530,29 @@
       "question": "A developer must choose between three database schema designs for a new feature, each with different performance and migration implications. The business rules are not fully specified. What is the best use of Claude Code at this stage?",
       "answers": [
         "A. Enter plan mode to analyze the schema options, explore trade-offs, and present a recommendation for team review before any implementation begins.",
-        "B. Implement the simplest schema first and refactor later when requirements are clearer.",
-        "C. Use the Explore subagent to generate all three schemas in parallel and pick the fastest.",
-        "D. Ask Claude Code to write a decision matrix document and commit it to the repository."
+        "B. Implement the simplest schema candidate first as a throwaway prototype and plan to refactor the entire design once the business requirements eventually become clearer.",
+        "C. Use the Explore subagent to generate all three complete schema implementations in parallel and then benchmark each against production query patterns to select the fastest.",
+        "D. Ask Claude Code to produce a structured decision matrix document covering all three schemas and immediately commit it to the repository as a formal design record."
       ],
       "correctAnswer": "A"
     },
     {
       "question": "A developer skips plan mode and immediately asks Claude Code to implement a notification system using WebSockets. Mid-implementation, it becomes clear that the infrastructure doesn't support persistent connections. What went wrong?",
       "answers": [
-        "A. Claude Code should have validated infrastructure constraints automatically before suggesting WebSockets.",
+        "A. Claude Code should have proactively queried the infrastructure configuration and automatically validated all connection constraints before suggesting or beginning any WebSocket implementation.",
         "B. Skipping the planning phase meant architectural constraints and options were not explored before committing to an implementation path, leading to wasted effort on an incompatible approach.",
-        "C. The developer should have used the Explore subagent instead of the main agent for implementation tasks.",
-        "D. WebSockets are not supported by Claude Code's allowed-tools configuration by default."
+        "C. The developer should have delegated the implementation to the Explore subagent rather than the main agent, since implementation tasks require the subagent's elevated tool access.",
+        "D. WebSockets are classified as a network-access tool and are therefore excluded from Claude Code's default allowed-tools configuration unless explicitly added to the project's tool permissions."
       ],
       "correctAnswer": "B"
     },
     {
       "question": "Why is plan mode particularly valuable for architectural decisions with unclear requirements, compared to direct implementation?",
       "answers": [
-        "A. Plan mode generates more tokens per request, allowing the model to consider more options simultaneously.",
-        "B. It defers all decisions to the developer by refusing to make recommendations, ensuring human oversight.",
+        "A. Plan mode is allocated a larger per-request token budget by the Claude Code runtime, allowing the model to hold significantly more candidate options in its active working memory simultaneously.",
+        "B. Plan mode deliberately withholds all recommendations and defers every architectural decision entirely to the developer, ensuring no implementation direction is pursued without explicit human sign-off.",
         "C. Plan mode enables the model to reason across the option space — comparing trade-offs, surfacing constraints, and forming a recommendation — before any implementation commits the codebase to a specific direction.",
-        "D. Plan mode automatically queries external architecture databases to validate that the chosen approach follows industry standards."
+        "D. Plan mode automatically queries Anthropic's curated external architecture database to cross-reference the proposed approach against known industry patterns and flag any deviations from best practices."
       ],
       "correctAnswer": "C"
     }
@@ -582,10 +582,10 @@
     {
       "question": "A developer uses only `context: fork` to fix a skill that has three problems: missing argument prompting, context bleed, and overly broad tool access. Why is this fix incomplete?",
       "answers": [
-        "A. context: fork is not valid frontmatter — it must be specified as an environment variable instead.",
+        "A. context: fork is not a valid frontmatter field at all — skill execution isolation must be configured via an CLAUDE_SKILL_ISOLATION environment variable rather than inline frontmatter.",
         "B. context: fork only addresses context isolation. The missing argument prompt and broad tool access are separate concerns that require argument-hint and allowed-tools restrictions respectively.",
-        "C. context: fork prevents all tool access, so adding it actually makes the broad tool access problem worse.",
-        "D. context: fork only works for skills stored in the user-level directory, not project-level skills."
+        "C. context: fork implicitly revokes all tool access for the duration of the skill execution, making the broad tool access problem significantly worse rather than narrowing it.",
+        "D. context: fork is only honored by the skill runtime when the skill file is stored in the user-level ~/.claude/skills/ directory and has no effect for project-level skills."
       ],
       "correctAnswer": "B"
     },
@@ -605,7 +605,7 @@
     {
       "question": "You have a skill that performs a deep codebase analysis. After running it, you notice its intermediate reasoning steps are visible in your main chat and affecting subsequent responses. What is the single frontmatter change that resolves this?",
       "answers": [
-        "A. Add output: suppress to the skill's frontmatter to hide intermediate steps.",
+        "A. Add output: suppress to the skill's frontmatter to hide intermediate steps from the conversation.",
         "B. Add sandbox: true to the skill's frontmatter to isolate file access.",
         "C. Add scope: hidden to the skill's frontmatter to prevent output propagation.",
         "D. Add context: fork to the skill's frontmatter to run the analysis in an isolated sub-agent context."
@@ -625,20 +625,20 @@
     {
       "question": "A developer adds `output: suppress` to a skill's frontmatter expecting it to prevent context pollution from a long analysis. The problem persists. What is wrong with their solution?",
       "answers": [
-        "A. output: suppress is correct but must be paired with scope: isolated to take effect.",
-        "B. The skill needs to be moved to ~/.claude/skills/ for output suppression to work at the session level.",
+        "A. output: suppress is a valid field but must be explicitly paired with scope: isolated in the same frontmatter block for the suppression to take full effect at the session context level.",
+        "B. The skill file must be relocated from the project-level .claude/skills/ directory to the user-level ~/.claude/skills/ directory for the output: suppress directive to be recognized.",
         "C. output: suppress is not a valid frontmatter field — the correct field for isolating a skill's execution context from the main session is context: fork.",
-        "D. output: suppress only works for skills with fewer than 10 tool calls; longer analyses require a different approach."
+        "D. output: suppress is only effective for skills that make ten or fewer total tool calls; analyses exceeding that threshold require a dedicated subagent approach to achieve isolation."
       ],
       "correctAnswer": "C"
     },
     {
       "question": "What mechanism does `context: fork` use to prevent a skill's analysis output from contaminating the main conversation context?",
       "answers": [
-        "A. It compresses the skill's output using lossless encoding before appending it to the conversation, reducing its effective token footprint.",
+        "A. It compresses and encodes the skill's verbose output into a compact binary token that is appended as a single opaque reference rather than inline text, so it occupies minimal context space.",
         "B. It runs the skill in an isolated sub-agent context — the skill's execution, intermediate steps, and outputs exist in a separate context that does not propagate back into the main conversation unless explicitly returned as a summary.",
-        "C. It routes the skill's output to a dedicated log file rather than the conversation, allowing the developer to review it separately.",
-        "D. It defers the skill's execution to a scheduled background job, so results only appear in the conversation when the developer explicitly requests them."
+        "C. It routes every line of the skill's output to a dedicated append-only log file on disk, replacing any inline content with a compact path reference that the conversation can access only when explicitly requested.",
+        "D. It defers the skill's entire execution to a scheduled background worker job running outside the session lifecycle, writing results to a persistent queue from which the developer must explicitly fetch them when ready."
       ],
       "correctAnswer": "B"
     }
